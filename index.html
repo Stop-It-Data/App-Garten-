@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AppGarten</title>
+<meta name="description" content="AppGarten – kleine Apps, mit Liebe gezogen. GipfelJäger, StopIt und was als Nächstes wächst.">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+/* Plan: ein Garten bei Nacht. Glühwürmchen in Bernstein, Blätter in Moosgrün.
+   Layout: riesiger Schriftzug über einem wachsenden Beet, darunter die Apps als Beete, dann der Weg vom Samen zur App. */
+:root {
+  --nacht: #090D0B;
+  --erde: #14100D;
+  --beet: #121A16;
+  --rand: #233229;
+  --blatt: #4FBF84;
+  --moos: #2F7A55;
+  --gluehen: #F2C46B;
+  --text-hell: #EEF4EF;
+  --text-leise: #9DB1A5;
+  --text-still: #61756A;
+  --display: "Fraunces", Georgia, serif;
+  --text: "Figtree", system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--nacht); color: var(--text-hell); font: 18px/1.6 var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--gluehen); outline-offset: 3px; border-radius: 6px; }
+.huelle { width: min(1180px, 100% - 32px); margin-inline: auto; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; }
+
+/* Kopf */
+.kopf { position: absolute; inset: 0 0 auto; z-index: 5; padding: 22px 0; }
+.kopf .huelle { display: flex; justify-content: space-between; align-items: center; }
+.logo { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 22px; text-decoration: none; }
+.logo svg { width: 30px; height: 30px; }
+.kopf nav { display: flex; gap: 22px; font-weight: 600; font-size: 15px; color: var(--text-leise); }
+.kopf nav a { text-decoration: none; transition: color .2s; }
+.kopf nav a:hover { color: var(--gluehen); }
+
+/* Hero */
+.hero { position: relative; min-height: min(860px, 100svh); display: grid; align-items: start; overflow: hidden; padding-top: 130px; }
+.hero::before {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(80% 60% at 70% 0%, rgba(242,196,107,.10), transparent 60%),
+              radial-gradient(60% 50% at 10% 20%, rgba(79,191,132,.10), transparent 70%);
+}
+#garten { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero-text { position: relative; z-index: 2; }
+.kleinzeile { font-weight: 700; letter-spacing: .18em; text-transform: uppercase; font-size: 14px; color: var(--gluehen); display: flex; align-items: center; gap: 10px; }
+.kleinzeile::before { content: ""; width: 34px; height: 1px; background: currentColor; }
+.riesig {
+  font-size: clamp(64px, 14vw, 210px); font-weight: 800; line-height: 1; letter-spacing: -.035em;
+  margin: 14px 0 30px; padding-bottom: .06em; display: flex; flex-wrap: wrap;
+}
+.riesig span { display: inline-block; animation: aufwachsen 1s cubic-bezier(.2,1.3,.4,1) both; }
+.riesig .grün { color: var(--blatt); font-style: italic; font-weight: 700; }
+@keyframes aufwachsen { from { transform: translateY(35%) rotate(4deg); } to { transform: none; } }
+.hero p { font-size: clamp(18px, 2vw, 22px); color: var(--text-leise); max-width: 36ch; }
+.zu-apps {
+  margin-top: 30px; display: inline-flex; align-items: center; gap: 12px; text-decoration: none;
+  background: var(--gluehen); color: #1d1406; font-weight: 700; padding: 15px 26px; border-radius: 999px;
+  box-shadow: 0 0 0 0 rgba(242,196,107,.5); animation: pochen 2.6s infinite;
+  transition: transform .2s;
+}
+.zu-apps:hover { transform: translateY(-2px); }
+@keyframes pochen { 0% { box-shadow: 0 0 0 0 rgba(242,196,107,.45); } 70% { box-shadow: 0 0 0 18px rgba(242,196,107,0); } 100% { box-shadow: 0 0 0 0 rgba(242,196,107,0); } }
+
+/* Zahlen-Zeile */
+.zahlen { display: flex; flex-wrap: wrap; gap: 40px; margin-top: 46px; }
+.zahlen div { display: grid; }
+.zahlen b { font-family: var(--display); font-size: 44px; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 2px 18px #090D0B; }
+.zahlen, .hero p { text-shadow: 0 1px 12px #090D0B; }
+.zahlen span { font-size: 14px; color: var(--text-leise); font-weight: 600; }
+
+/* Abschnitte */
+section { padding: 110px 0; }
+.titel { display: grid; gap: 14px; margin-bottom: 50px; max-width: 760px; }
+.titel h2 { font-size: clamp(44px, 6vw, 80px); line-height: .98; letter-spacing: -.02em; }
+.titel h2 em { color: var(--blatt); }
+.titel p { color: var(--text-leise); max-width: 58ch; }
+
+/* App-Beete */
+.beete { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 26px; }
+.beet {
+  position: relative; display: grid; grid-template-rows: 260px auto; text-decoration: none;
+  border-radius: 28px; overflow: hidden; background: var(--beet); border: 1px solid var(--rand);
+  transition: transform .45s cubic-bezier(.2,1.2,.4,1), box-shadow .45s, border-color .3s;
+}
+.beet:hover { transform: translateY(-8px) rotate(-.4deg); box-shadow: 0 30px 60px -25px var(--schein, rgba(79,191,132,.45)); border-color: var(--schein-rand, var(--moos)); }
+.beet .buehne { position: relative; overflow: hidden; }
+.beet .buehne svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.beet .inhalt { padding: 26px 28px 30px; display: grid; gap: 10px; }
+.beet .kopfzeile { display: flex; align-items: center; gap: 14px; }
+.beet .icon { width: 64px; height: 64px; border-radius: 16px; flex: none; box-shadow: 0 8px 20px -6px rgba(0,0,0,.6); transition: transform .5s cubic-bezier(.2,1.6,.4,1); }
+.beet:hover .icon { transform: rotate(-8deg) scale(1.08); }
+.beet h3 { font-size: 36px; line-height: 1; }
+.beet .status { font-size: 13px; font-weight: 700; color: var(--blatt); display: inline-flex; align-items: center; gap: 6px; }
+.beet .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; animation: blinken 2s infinite; }
+@keyframes blinken { 50% { opacity: .35; } }
+.beet p { color: var(--text-leise); font-size: 17px; }
+.marken { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.marken span { font-size: 13px; font-weight: 600; color: var(--text-leise); padding: 5px 11px; border-radius: 999px; border: 1px solid var(--rand); }
+.beet .pfeil { margin-top: 8px; font-weight: 700; display: inline-flex; gap: 8px; align-items: center; color: var(--text-hell); }
+.beet .pfeil i { font-style: normal; transition: transform .3s; }
+.beet:hover .pfeil i { transform: translateX(6px); }
+
+.beet.samen { grid-template-rows: auto; border-style: dashed; background: transparent; place-items: center; text-align: center; padding: 50px 30px; color: var(--text-still); }
+.beet.samen:hover { transform: none; box-shadow: none; }
+.beet.samen svg { width: 90px; height: 90px; margin-bottom: 14px; }
+.beet.samen h3 { color: var(--text-leise); font-size: 30px; }
+
+/* Vom Samen zur App */
+.weg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
+.weg::before { content: ""; position: absolute; left: 6%; right: 6%; top: 58px; height: 2px; background: repeating-linear-gradient(90deg, var(--moos) 0 10px, transparent 10px 18px); }
+.schritt { position: relative; display: grid; justify-items: center; text-align: center; gap: 10px; padding: 0 12px; }
+.schritt .kreis { width: 116px; height: 116px; border-radius: 50%; background: var(--beet); border: 1px solid var(--rand); display: grid; place-items: center; position: relative; z-index: 1; }
+.schritt svg { width: 62px; height: 62px; }
+.schritt h3 { font-size: 26px; }
+.schritt p { font-size: 16px; color: var(--text-leise); max-width: 24ch; }
+.schritt:nth-child(1) .kreis { animation: wippen 4s ease-in-out infinite; }
+.schritt:nth-child(2) .kreis { animation: wippen 4s ease-in-out -1s infinite; }
+.schritt:nth-child(3) .kreis { animation: wippen 4s ease-in-out -2s infinite; }
+.schritt:nth-child(4) .kreis { animation: wippen 4s ease-in-out -3s infinite; }
+@keyframes wippen { 50% { transform: translateY(-8px); } }
+@media (max-width: 760px) {
+  .weg { grid-template-columns: 1fr 1fr; row-gap: 40px; }
+  .weg::before { display: none; }
+}
+
+/* Schluss */
+.schluss { position: relative; overflow: hidden; text-align: center; padding: 140px 0 120px; }
+.schluss h2 { font-size: clamp(48px, 8vw, 120px); line-height: .95; letter-spacing: -.03em; }
+.schluss h2 em { color: var(--gluehen); }
+.schluss p { color: var(--text-leise); margin: 18px auto 0; max-width: 46ch; }
+#gluehwuermchen { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+
+footer { border-top: 1px solid var(--rand); padding: 28px 0 44px; color: var(--text-still); font-size: 15px; }
+footer .huelle { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px 30px; }
+footer nav { display: flex; flex-wrap: wrap; gap: 22px; }
+footer a { text-decoration: none; }
+footer a:hover { color: var(--gluehen); }
+.luecke { background: rgba(217,83,79,.18); color: #ffb3ad; padding: 1px 6px; border-radius: 5px; font-weight: 600; }
+
+@media (max-width: 640px) { .kopf nav { display: none; } .zahlen { gap: 26px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="kopf">
+  <div class="huelle">
+    <a class="logo" href="#top">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 36 C20 26 20 20 20 14" stroke="#4FBF84" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M20 22 C12 22 8 16 8 10 C15 10 20 14 20 22Z" fill="#4FBF84"/><path d="M20 18 C27 18 32 13 32 6 C25 6 20 10 20 18Z" fill="#2F7A55"/><circle cx="31" cy="27" r="3" fill="#F2C46B"/></svg>
+      AppGarten
+    </a>
+    <nav aria-label="Abschnitte">
+      <a href="#apps">Apps</a>
+      <a href="#samen">Wie's wächst</a>
+      <a href="#kontakt">Kontakt</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <canvas id="garten" aria-hidden="true"></canvas>
+    <div class="huelle hero-text">
+      <div class="kleinzeile">Kleine Apps, mit Liebe gezogen</div>
+      <h1 class="riesig" aria-label="AppGarten">
+        <span style="animation-delay:.00s">A</span><span style="animation-delay:.05s">p</span><span style="animation-delay:.10s">p</span><span class="grün" style="animation-delay:.18s">G</span><span class="grün" style="animation-delay:.23s">a</span><span class="grün" style="animation-delay:.28s">r</span><span class="grün" style="animation-delay:.33s">t</span><span class="grün" style="animation-delay:.38s">e</span><span class="grün" style="animation-delay:.43s">n</span>
+      </h1>
+      <p>Hier wachsen Apps. Jede hat als kleine Idee angefangen und ist Zeile für Zeile groß geworden. Such dir eine aus.</p>
+      <a class="zu-apps" href="#apps">Zu den Apps ↓</a>
+      <div class="zahlen">
+        <div><b data-zaehl="2">2</b><span>Apps im Garten</span></div>
+        <div><b data-zaehl="0">0</b><span>Werbung</span></div>
+        <div><b data-zaehl="0">0</b><span>Tracking</span></div>
+        <div><b data-zaehl="100" data-nach=" %">100 %</b><span>selbst gebaut</span></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="apps">
+    <div class="huelle">
+      <div class="titel">
+        <div class="kleinzeile">Was gerade blüht</div>
+        <h2>Die Apps im <em>Garten</em></h2>
+        <p>Tipp auf ein Beet, dann siehst du alles über die App.</p>
+      </div>
+
+      <div class="beete">
+        <!-- GipfelJäger -->
+        <a class="beet" href="gipfeljaeger/index.html" style="--schein: rgba(93,202,165,.45); --schein-rand:#2c6b58">
+          <div class="buehne" style="background:#0B1412">
+            <svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+              <g fill="#2E4A44"><circle cx="40" cy="30" r="1.5"/><circle cx="120" cy="60" r="1"/><circle cx="300" cy="24" r="1.6"/><circle cx="360" cy="80" r="1"/><circle cx="220" cy="40" r="1.2"/></g>
+              <path d="M0 170 L70 110 L120 140 L200 60 L280 130 L340 95 L400 120 L400 260 L0 260Z" fill="#12231F"/>
+              <path d="M0 210 L60 170 L110 190 L190 100 L260 160 L330 140 L400 165 L400 260 L0 260Z" fill="#16302A"/>
+              <path d="M176 122 L190 100 L205 124 L196 121 L190 130 L184 121Z" fill="#E1F5EE" opacity=".9"/>
+              <path class="zz" d="M160 250 L225 238 L170 222 L218 206 L178 190 L210 172 L184 156 L202 140 L188 124 L190 102" fill="none" stroke="#5DCAA5" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle class="zz-punkt" r="6" fill="#5DCAA5" stroke="#E1F5EE" stroke-width="2.5" cx="190" cy="102"/>
+            </svg>
+          </div>
+          <div class="inhalt">
+            <div class="kopfzeile">
+              <svg class="icon" viewBox="0 0 180 180" aria-hidden="true"><rect width="180" height="180" fill="#0B1412"/><path d="M0 118 L42 74 L66 96 L112 44 L180 112 L180 180 L0 180Z" fill="#12231F"/><path d="M0 140 L34 108 L56 122 L92 62 L130 106 L180 92 L180 180 L0 180Z" fill="#16302A"/><path d="M80 82 L92 62 L104 78 L97 76 L92 84 L86 76Z" fill="#E1F5EE"/><path d="M66 168 L124 154 L74 140 L118 126 L82 112 L110 98 L88 86 L92 66" stroke="#5DCAA5" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" fill="none"/><line x1="92" y1="64" x2="92" y2="40" stroke="#E1F5EE" stroke-width="4"/><path d="M92 40 L110 46 L92 52Z" fill="#5DCAA5"/></svg>
+              <div><h3>GipfelJäger</h3><span class="status">Im App Store</span></div>
+            </div>
+            <p>Sammle die Gipfel der Alpen. Aufzeichnen, oben ankommen, Gipfelpunkte holen und im Rang aufsteigen.</p>
+            <div class="marken"><span>Wandern</span><span>Karte</span><span>Erfolge</span><span>Kostenlos</span></div>
+            <span class="pfeil">App ansehen <i>→</i></span>
+          </div>
+        </a>
+
+        <!-- StopIt -->
+        <a class="beet" href="stopit/index.html" style="--schein: rgba(167,139,250,.4); --schein-rand:#4b3f78">
+          <div class="buehne" style="background:#0E0D14">
+            <svg viewBox="0 0 400 260" aria-hidden="true" id="stopitMini"></svg>
+          </div>
+          <div class="inhalt">
+            <div class="kopfzeile">
+              <svg class="icon" viewBox="0 0 180 180" aria-hidden="true"><defs><linearGradient id="si" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1A1726"/><stop offset="1" stop-color="#0D0C13"/></linearGradient></defs><rect width="180" height="180" fill="url(#si)"/><circle cx="90" cy="90" r="52" fill="none" stroke="#2A2638" stroke-width="14"/><circle cx="90" cy="90" r="52" fill="none" stroke="#A78BFA" stroke-width="14" stroke-linecap="round" stroke-dasharray="250 400" transform="rotate(-90 90 90)"/><path d="M68 92 L84 108 L114 76" fill="none" stroke="#F4F2FF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div><h3>StopIt</h3><span class="status" style="color:#A78BFA">Im App Store</span></div>
+            </div>
+            <p>Weniger von dem, was dir nicht guttut. Jeden Tag abhaken, Streaks aufbauen und im Kalender sehen, wie weit du schon bist.</p>
+            <div class="marken"><span>Gewohnheiten</span><span>Streaks</span><span>Face ID</span><span>Kostenlos</span></div>
+            <span class="pfeil">App ansehen <i>→</i></span>
+          </div>
+        </a>
+
+        <!-- Nächste Idee -->
+        <div class="beet samen" aria-label="Hier wächst bald die nächste App">
+          <svg viewBox="0 0 90 90" aria-hidden="true"><ellipse cx="45" cy="76" rx="30" ry="6" fill="#14100D"/><path d="M45 74 C45 62 45 56 45 48" stroke="#2F7A55" stroke-width="3" stroke-linecap="round" fill="none"><animate attributeName="d" dur="3s" repeatCount="indefinite" values="M45 74 C45 70 45 68 45 66;M45 74 C45 62 45 56 45 48;M45 74 C45 70 45 68 45 66"/></path><circle cx="45" cy="48" r="5" fill="#F2C46B"><animate attributeName="cy" dur="3s" repeatCount="indefinite" values="66;48;66"/></circle></svg>
+          <h3>Hier keimt schon was</h3>
+          <p>Die nächste App wächst gerade.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="samen">
+    <div class="huelle">
+      <div class="titel">
+        <div class="kleinzeile">Wie's wächst</div>
+        <h2>Vom Samen zur <em>App</em></h2>
+        <p>Jede App im Garten geht denselben Weg. Ganz ohne große Firma dahinter.</p>
+      </div>
+      <div class="weg">
+        <div class="schritt">
+          <div class="kreis"><svg viewBox="0 0 60 60" aria-hidden="true"><ellipse cx="30" cy="34" rx="10" ry="14" fill="#F2C46B" transform="rotate(-20 30 34)"/><path d="M26 26 Q32 30 30 40" stroke="#1d1406" stroke-width="2" fill="none" opacity=".5"/></svg></div>
+          <h3>Idee</h3><p>Ein Gedanke beim Wandern oder im Alltag. Das bräuchte es mal als App.</p>
+        </div>
+        <div class="schritt">
+          <div class="kreis"><svg viewBox="0 0 60 60" aria-hidden="true"><path d="M30 50 V28" stroke="#4FBF84" stroke-width="3" stroke-linecap="round"/><path d="M30 34 C22 34 18 28 18 22 C25 22 30 26 30 34Z" fill="#4FBF84"/><path d="M30 30 C37 30 42 25 42 19 C35 19 30 23 30 30Z" fill="#2F7A55"/><rect x="18" y="48" width="24" height="4" rx="2" fill="#14100D"/></svg></div>
+          <h3>Code</h3><p>Zeile für Zeile in Swift geschrieben, ausprobiert, verbessert.</p>
+        </div>
+        <div class="schritt">
+          <div class="kreis"><svg viewBox="0 0 60 60" aria-hidden="true"><path d="M30 52 V20" stroke="#4FBF84" stroke-width="3" stroke-linecap="round"/><path d="M30 40 C20 40 15 33 15 26 C24 26 30 31 30 40Z" fill="#4FBF84"/><path d="M30 32 C40 32 45 26 45 19 C36 19 30 24 30 32Z" fill="#2F7A55"/><circle cx="30" cy="16" r="7" fill="#F2C46B"/></svg></div>
+          <h3>Testen</h3><p>Draußen ausprobiert, bis alles sitzt. Erst dann darf sie raus.</p>
+        </div>
+        <div class="schritt">
+          <div class="kreis"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="14" y="10" width="32" height="42" rx="7" fill="none" stroke="#EEF4EF" stroke-width="3"/><path d="M30 42 V26" stroke="#4FBF84" stroke-width="3" stroke-linecap="round"/><path d="M30 32 C24 32 21 28 21 24 C26 24 30 27 30 32Z" fill="#4FBF84"/><circle cx="30" cy="22" r="4" fill="#F2C46B"/></svg></div>
+          <h3>App Store</h3><p>Kostenlos zum Laden, ohne Werbung und ohne Tracking.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="schluss" id="kontakt">
+    <canvas id="gluehwuermchen" aria-hidden="true"></canvas>
+    <div class="huelle">
+      <h2>Ideen, Fehler, <em>Lob?</em></h2>
+      <p>Schreib mir einfach. Jede Nachricht gießt den Garten ein bisschen.</p>
+      <a class="zu-apps" style="margin-top:30px" href="mailto:appgarten@outlook.com">appgarten@outlook.com</a>
+      <p style="margin-top:14px;font-size:15px">Falls der Knopf nicht aufgeht: einfach die Adresse abschreiben.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="huelle">
+    <span>© 2026 AppGarten</span>
+    <nav aria-label="Rechtliches">
+      <a href="gipfeljaeger/datenschutz.html">Datenschutz GipfelJäger</a>
+      <a href="stopit/datenschutz.html">Datenschutz StopIt</a>
+      <a href="impressum.html">Impressum</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  const ruhig = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- Wachsender Garten im Hero ----------
+  const cv = document.getElementById("garten");
+  const ctx = cv.getContext("2d");
+  let B = 0, H = 0, dpr = 1, pflanzen = [], wuermchen = [];
+  let maus = { x: -999, y: -999 };
+  let seed = 11;
+  const zz = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+
+  function anlegen() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    B = cv.clientWidth; H = cv.clientHeight;
+    cv.width = B * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    seed = 11;
+    pflanzen = [];
+    const anzahl = Math.round(B / 34);
+    for (let i = 0; i < anzahl; i++) {
+      const x = (i + zz() * .8) * (B / anzahl);
+      const links = x < B * .55 && B > 700;
+      const hoch = H * (.12 + zz() * .32) * (links ? .45 : 1.15);
+      const blaetter = [];
+      const n = 2 + Math.floor(zz() * 4);
+      for (let k = 0; k < n; k++) blaetter.push({ t: .25 + k * (.6 / n) + zz() * .05, seite: k % 2 ? 1 : -1, groesse: 7 + zz() * 10 });
+      pflanzen.push({
+        x, hoch, blaetter,
+        start: zz() * 1.8, dauer: 2.2 + zz() * 2,
+        schwung: (zz() - .5) * 40, phase: zz() * 6,
+        bluete: zz() > .55 ? ["#F2C46B", "#E88FA7", "#9DD9F2", "#F4F2EA"][Math.floor(zz() * 4)] : null,
+        farbe: zz() > .5 ? "#4FBF84" : "#2F7A55"
+      });
+    }
+    wuermchen = [];
+    for (let i = 0; i < Math.round(B / 30); i++) {
+      wuermchen.push({ x: zz() * B, y: H * (.25 + zz() * .7), vx: (zz() - .5) * .3, vy: (zz() - .5) * .3, p: zz() * 6, r: 1.4 + zz() * 1.8 });
+    }
+  }
+
+  const t0 = performance.now();
+  function malen(jetzt) {
+    const t = ruhig ? 99 : (jetzt - t0) / 1000;
+    ctx.clearRect(0, 0, B, H);
+    const boden = H - 4;
+    // Erde
+    const g = ctx.createLinearGradient(0, boden - 30, 0, H);
+    g.addColorStop(0, "rgba(20,16,13,0)"); g.addColorStop(1, "rgba(20,16,13,1)");
+    ctx.fillStyle = g; ctx.fillRect(0, boden - 30, B, 34);
+
+    for (const p of pflanzen) {
+      let w = Math.min(1, Math.max(0, (t - p.start) / p.dauer));
+      w = 1 - Math.pow(1 - w, 3);
+      if (w <= 0) continue;
+      const wind = Math.sin(t * 1.1 + p.phase) * 6 + (maus.x > -900 ? Math.max(-14, Math.min(14, (p.x - maus.x) * -0.02)) : 0);
+      const spitzeX = p.x + p.schwung * .3 + wind, spitzeY = boden - p.hoch * w;
+      const kx = p.x + p.schwung, ky = boden - p.hoch * w * .5;
+      ctx.strokeStyle = p.farbe; ctx.lineWidth = 2.2; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(p.x, boden); ctx.quadraticCurveTo(kx, ky, spitzeX, spitzeY); ctx.stroke();
+      for (const b of p.blaetter) {
+        const lw = Math.min(1, Math.max(0, (w - b.t) / .25));
+        if (lw <= 0) continue;
+        const u = b.t, a = 1 - u;
+        const bx = a * a * p.x + 2 * a * u * kx + u * u * spitzeX;
+        const by = a * a * boden + 2 * a * u * ky + u * u * spitzeY;
+        ctx.save(); ctx.translate(bx, by);
+        ctx.rotate(b.seite * (0.9 + Math.sin(t * 1.3 + p.phase + u * 4) * .12));
+        ctx.fillStyle = p.farbe;
+        ctx.beginPath(); ctx.ellipse(b.seite * b.groesse * lw * .6, 0, b.groesse * lw, b.groesse * .42 * lw, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+      if (p.bluete && w > .92) {
+        const bw = (w - .92) / .08;
+        ctx.save(); ctx.translate(spitzeX, spitzeY);
+        ctx.shadowColor = p.bluete; ctx.shadowBlur = 16;
+        ctx.fillStyle = p.bluete;
+        for (let k = 0; k < 5; k++) {
+          ctx.rotate(Math.PI * 2 / 5);
+          ctx.beginPath(); ctx.ellipse(0, -5 * bw, 3.4 * bw, 5.5 * bw, 0, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.shadowBlur = 0; ctx.fillStyle = "#14100D";
+        ctx.beginPath(); ctx.arc(0, 0, 2.2 * bw, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      }
+    }
+    // Glühwürmchen
+    for (const f of wuermchen) {
+      if (!ruhig) {
+        f.vx += (Math.random() - .5) * .04; f.vy += (Math.random() - .5) * .04;
+        const dx = maus.x - f.x, dy = maus.y - f.y, d = Math.hypot(dx, dy);
+        if (d < 160 && d > 1) { f.vx += dx / d * .03; f.vy += dy / d * .03; }
+        f.vx *= .98; f.vy *= .98; f.x += f.vx; f.y += f.vy;
+        if (f.x < 0) f.x = B; if (f.x > B) f.x = 0;
+        if (f.y < H * .15) f.vy += .02; if (f.y > H - 10) f.vy -= .03;
+      }
+      const a = .35 + .65 * Math.abs(Math.sin(t * 1.4 + f.p));
+      ctx.fillStyle = `rgba(242,196,107,${a})`;
+      ctx.shadowColor = "#F2C46B"; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+    if (!ruhig) requestAnimationFrame(malen);
+  }
+  anlegen(); requestAnimationFrame(malen);
+  addEventListener("resize", () => { anlegen(); if (ruhig) requestAnimationFrame(malen); });
+  cv.parentElement.addEventListener("pointermove", e => { const r = cv.getBoundingClientRect(); maus = { x: e.clientX - r.left, y: e.clientY - r.top }; });
+  cv.parentElement.addEventListener("pointerleave", () => { maus = { x: -999, y: -999 }; });
+
+  // ---------- Glühwürmchen unten ----------
+  const c2 = document.getElementById("gluehwuermchen");
+  const x2 = c2.getContext("2d");
+  let b2 = 0, h2 = 0, punkte = [];
+  function anlegen2() {
+    const d = Math.min(2, devicePixelRatio || 1);
+    b2 = c2.clientWidth; h2 = c2.clientHeight;
+    c2.width = b2 * d; c2.height = h2 * d; x2.setTransform(d, 0, 0, d, 0, 0);
+    punkte = Array.from({ length: Math.round(b2 / 22) }, () => ({ x: Math.random() * b2, y: Math.random() * h2, p: Math.random() * 6, s: .2 + Math.random() * .5 }));
+  }
+  function malen2(j) {
+    const t = j / 1000;
+    x2.clearRect(0, 0, b2, h2);
+    for (const q of punkte) {
+      if (!ruhig) { q.y -= q.s * .4; q.x += Math.sin(t + q.p) * .3; if (q.y < -5) { q.y = h2 + 5; q.x = Math.random() * b2; } }
+      const a = .2 + .8 * Math.abs(Math.sin(t * 1.2 + q.p));
+      x2.fillStyle = `rgba(242,196,107,${a})`; x2.shadowColor = "#F2C46B"; x2.shadowBlur = 14;
+      x2.beginPath(); x2.arc(q.x, q.y, 1.8, 0, Math.PI * 2); x2.fill();
+    }
+    if (!ruhig) requestAnimationFrame(malen2);
+  }
+  anlegen2(); requestAnimationFrame(malen2);
+  addEventListener("resize", anlegen2);
+
+  // ---------- GipfelJäger-Beet: Punkt läuft hoch ----------
+  const zzPfad = document.querySelector(".zz"), zzPunkt = document.querySelector(".zz-punkt");
+  const zl = zzPfad.getTotalLength();
+  function gipfelLauf() {
+    if (ruhig) return;
+    const s = performance.now();
+    const f = j => {
+      const x = Math.min(1, ((j - s) / 3200)), a = 1 - Math.pow(1 - x, 2);
+      zzPfad.style.strokeDasharray = zl; zzPfad.style.strokeDashoffset = zl * (1 - a);
+      const p = zzPfad.getPointAtLength(zl * a);
+      zzPunkt.setAttribute("cx", p.x); zzPunkt.setAttribute("cy", p.y);
+      if (x < 1) requestAnimationFrame(f); else setTimeout(gipfelLauf, 2200);
+    };
+    requestAnimationFrame(f);
+  }
+  gipfelLauf();
+
+  // ---------- StopIt-Beet: Kalender füllt sich ----------
+  const mini = document.getElementById("stopitMini");
+  const NS = "http://www.w3.org/2000/svg";
+  const tage = [];
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 7; c++) {
+    const k = document.createElementNS(NS, "circle");
+    k.setAttribute("cx", 92 + c * 36); k.setAttribute("cy", 58 + r * 36); k.setAttribute("r", 13);
+    k.setAttribute("fill", "#1E1B2A");
+    k.style.transition = "fill .3s, transform .4s cubic-bezier(.2,1.8,.4,1)";
+    k.style.transformBox = "fill-box"; k.style.transformOrigin = "center";
+    mini.appendChild(k); tage.push(k);
+  }
+  const streakText = document.createElementNS(NS, "text");
+  streakText.setAttribute("x", 200); streakText.setAttribute("y", 222); streakText.setAttribute("text-anchor", "middle");
+  streakText.setAttribute("fill", "#F4F2FF"); streakText.setAttribute("font-family", "Figtree, sans-serif"); streakText.setAttribute("font-weight", "700"); streakText.setAttribute("font-size", "20");
+  mini.appendChild(streakText);
+  const muster = "1111011111111110111111111111".split("");
+  function kalenderLauf() {
+    tage.forEach(k => { k.setAttribute("fill", "#1E1B2A"); k.style.transform = "scale(1)"; });
+    let i = 0, streak = 0;
+    streakText.textContent = "Streak: 0 Tage";
+    const tick = () => {
+      if (i >= tage.length) { setTimeout(kalenderLauf, 2500); return; }
+      const ok = muster[i] === "1";
+      tage[i].setAttribute("fill", ok ? "#A78BFA" : "#E05A6A");
+      tage[i].style.transform = "scale(1.25)";
+      const k = tage[i]; setTimeout(() => k.style.transform = "scale(1)", 200);
+      streak = ok ? streak + 1 : 0;
+      streakText.textContent = `Streak: ${streak} ${streak === 1 ? "Tag" : "Tage"}`;
+      i++; setTimeout(tick, 140);
+    };
+    tick();
+  }
+  if (ruhig) { tage.forEach((k, i) => k.setAttribute("fill", muster[i] === "1" ? "#A78BFA" : "#E05A6A")); streakText.textContent = "Streak: 12 Tage"; }
+  else kalenderLauf();
+})();
+</script>
+</body>
+</html>

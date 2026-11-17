@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StopIt</title>
+<meta name="description" content="StopIt – weniger von dem, was dir nicht guttut. Gewohnheiten abhaken, Streaks aufbauen, kostenlos.">
+<link rel="stylesheet" href="../fonts/fonts.css">
+<style>
+/* Plan: ruhige Nacht in Violett-Schwarz. Farbe kommt nur aus den Gewohnheiten selbst.
+   Layout: Satz + Handy, dann der große Streak-Zähler mit Kalender, dann Abhaken vs. Zählen, Farben, Face ID, Preis. */
+:root {
+  --grund: #0B0A10;
+  --flaeche: #14121C;
+  --linie: #26223A;
+  --violett: #A78BFA;
+  --koralle: #FF8A7A;
+  --minze: #6EE7B7;
+  --sonne: #FBBF5C;
+  --rot: #E05A6A;
+  --hell: #F4F2FF;
+  --leise: #A9A3C2;
+  --still: #6E6890;
+  --display: "Unbounded", system-ui, sans-serif;
+  --text: "Figtree", system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--grund); color: var(--hell); font: 18px/1.6 var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--violett); outline-offset: 3px; border-radius: 6px; }
+.huelle { width: min(1160px, 100% - 32px); margin-inline: auto; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; letter-spacing: -.02em; }
+.zahl { font-variant-numeric: tabular-nums; }
+
+/* Kopf */
+.kopf { padding: 22px 0; position: relative; z-index: 5; }
+.kopf .huelle { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.logo { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: 20px; text-decoration: none; }
+.logo svg { width: 34px; height: 34px; border-radius: 9px; }
+.kopf nav { display: flex; gap: 22px; font-weight: 600; font-size: 15px; color: var(--leise); }
+.kopf nav a { text-decoration: none; transition: color .2s; }
+.kopf nav a:hover { color: var(--hell); }
+.kopf nav .garten { color: var(--minze); }
+@media (max-width: 680px) { .kopf nav a:not(.garten) { display: none; } }
+
+/* Hero */
+.hero { position: relative; padding: 50px 0 90px; overflow: hidden; }
+.hero::before {
+  content: ""; position: absolute; width: 900px; height: 900px; right: -300px; top: -380px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(167,139,250,.22), transparent 60%);
+  animation: atmen 8s ease-in-out infinite;
+}
+@keyframes atmen { 50% { transform: scale(1.12); opacity: .7; } }
+.hero .huelle { display: grid; grid-template-columns: 1.1fr .9fr; gap: 50px; align-items: center; position: relative; }
+@media (max-width: 900px) { .hero .huelle { grid-template-columns: 1fr; } }
+.marke-klein { font-weight: 700; font-size: 14px; letter-spacing: .16em; text-transform: uppercase; color: var(--violett); }
+.hero h1 { font-size: clamp(46px, 6.6vw, 92px); font-weight: 800; line-height: 1; margin: 16px 0 22px; }
+.hero h1 .wechsel { display: inline-block; color: var(--violett); position: relative; }
+.hero p { color: var(--leise); font-size: clamp(18px, 1.9vw, 21px); max-width: 38ch; }
+.knoepfe { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.store {
+  display: inline-flex; align-items: center; gap: 12px; padding: 10px 22px 10px 10px; border-radius: 16px; text-decoration: none;
+  background: var(--hell); color: var(--grund); position: relative; overflow: hidden; isolation: isolate;
+  box-shadow: 0 16px 40px -14px rgba(167,139,250,.7); transition: transform .25s cubic-bezier(.2,1.4,.4,1);
+}
+.store:hover { transform: translateY(-3px) scale(1.02); }
+.store svg { width: 44px; height: 44px; border-radius: 11px; }
+.store small { display: block; font-size: 12px; font-weight: 600; color: #57507a; line-height: 1.1; }
+.store strong { display: block; font-family: var(--display); font-weight: 700; font-size: 19px; line-height: 1.1; }
+.store::after { content: ""; position: absolute; top: -40%; bottom: -40%; left: -60%; width: 40%; z-index: -1; background: linear-gradient(100deg, transparent, rgba(167,139,250,.5), transparent); transform: skewX(-20deg); animation: glanz 3.8s ease-in-out infinite; }
+@keyframes glanz { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+.leer { display: inline-flex; align-items: center; padding: 0 24px; border-radius: 16px; text-decoration: none; font-weight: 700; box-shadow: inset 0 0 0 2px var(--linie); transition: box-shadow .2s; min-height: 64px; }
+.leer:hover { box-shadow: inset 0 0 0 2px var(--violett); }
+
+/* Handy */
+.handy {
+  width: min(330px, 100%); aspect-ratio: 9 / 19.3; margin-inline: auto; border-radius: 50px; padding: 12px;
+  background: #050408; box-shadow: 0 0 0 2px #2b2640, 0 50px 90px -30px rgba(167,139,250,.45);
+  animation: schweben 6s ease-in-out infinite;
+}
+@keyframes schweben { 50% { transform: translateY(-12px) rotate(1deg); } }
+.schirm { position: relative; height: 100%; border-radius: 40px; overflow: hidden; background: #0F0E15; padding: 54px 14px 14px; }
+.insel { position: absolute; top: 10px; left: 50%; translate: -50% 0; width: 92px; height: 26px; border-radius: 20px; background: #000; }
+.schirm .datum { font-size: 12px; font-weight: 600; color: var(--still); }
+.schirm h4 { font-family: var(--text); font-size: 26px; font-weight: 800; margin-bottom: 14px; }
+.kachel {
+  position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px;
+  padding: 14px 14px; border-radius: 20px; margin-bottom: 10px; color: #fff; overflow: hidden;
+  background: linear-gradient(135deg, var(--a), var(--b));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 10px 22px -12px var(--a);
+}
+.kachel::after { content: ""; position: absolute; inset: 0; background: radial-gradient(120% 80% at 0% 0%, rgba(255,255,255,.22), transparent 55%); pointer-events: none; }
+.kachel b { display: block; font-size: 15px; }
+.kachel small { font-size: 12px; opacity: .85; font-weight: 600; }
+.haken {
+  width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(255,255,255,.18); border: 2px solid rgba(255,255,255,.55);
+  transition: background .3s, transform .4s cubic-bezier(.2,1.8,.4,1);
+}
+.haken svg { width: 20px; height: 20px; stroke: #fff; stroke-width: 3.2; fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 30; stroke-dashoffset: 30; transition: stroke-dashoffset .4s .1s; }
+.haken.an { background: #2ECC71; border-color: #2ECC71; transform: scale(1.12); }
+.haken.an svg { stroke-dashoffset: 0; }
+.menge { text-align: right; font-weight: 800; font-size: 20px; }
+.menge small { display: block; font-size: 11px; font-weight: 600; }
+.leiste { grid-column: 1 / -1; height: 6px; border-radius: 9px; background: rgba(255,255,255,.25); overflow: hidden; }
+.leiste i { display: block; height: 100%; width: 30%; background: #fff; border-radius: 9px; transition: width 1.2s cubic-bezier(.3,1,.4,1); }
+.flamme { margin-top: 16px; display: flex; justify-content: space-between; align-items: center; padding: 14px; border-radius: 18px; background: #17151F; border: 1px solid var(--linie); font-size: 13px; color: var(--leise); }
+.flamme b { font-family: var(--display); font-size: 22px; color: var(--hell); }
+
+/* Abschnitte */
+section { padding: 110px 0; position: relative; }
+.titel { max-width: 760px; display: grid; gap: 14px; margin-bottom: 50px; }
+.titel h2 { font-size: clamp(36px, 5vw, 64px); font-weight: 800; line-height: 1.05; }
+.titel h2 em { font-style: normal; color: var(--violett); }
+.titel p { color: var(--leise); max-width: 56ch; }
+
+/* Streak */
+.streak { display: grid; grid-template-columns: 1fr minmax(0, 480px); gap: 60px; align-items: center; }
+@media (max-width: 860px) { .streak { grid-template-columns: 1fr; gap: 30px; } }
+.riesenzahl { font-family: var(--display); font-weight: 800; font-size: clamp(130px, 22vw, 290px); line-height: .85; letter-spacing: -.05em;
+  background: linear-gradient(180deg, var(--hell), var(--violett)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.riesenzahl + span { display: block; font-weight: 700; color: var(--leise); font-size: 20px; margin-top: 10px; }
+.monat { background: var(--flaeche); border: 1px solid var(--linie); border-radius: 26px; padding: 26px; }
+.monat-kopf { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; font-weight: 700; }
+.monat-kopf span { color: var(--still); font-weight: 600; font-size: 15px; }
+.wochentage, .tage { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+.wochentage span { text-align: center; font-size: 12px; font-weight: 700; color: var(--still); }
+.tage { margin-top: 10px; }
+.tag {
+  aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 600; color: var(--leise);
+  background: #1C1A27; transition: background .3s, color .3s, transform .4s cubic-bezier(.2,1.8,.4,1), box-shadow .3s;
+}
+.tag.ok { background: var(--violett); color: #1a1430; }
+.tag.nein { background: var(--rot); color: #fff; }
+.tag.leer { background: transparent; }
+.tag.knall { transform: scale(1.22); box-shadow: 0 0 18px rgba(167,139,250,.6); }
+
+/* Zwei Modi */
+.modi { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 860px) { .modi { grid-template-columns: 1fr; } }
+.modus { background: var(--flaeche); border: 1px solid var(--linie); border-radius: 26px; padding: 30px; display: grid; gap: 16px; transition: border-color .3s, transform .4s cubic-bezier(.2,1.2,.4,1); }
+.modus:hover { border-color: var(--violett); transform: translateY(-4px); }
+.modus h3 { font-size: 28px; }
+.modus p { color: var(--leise); font-size: 17px; }
+.reihe { display: flex; gap: 10px; }
+.reihe .haken { width: 44px; height: 44px; background: #1C1A27; border-color: #34304a; }
+.reihe .haken.nein { background: var(--rot); border-color: var(--rot); }
+.reihe .haken.nein svg { stroke-dashoffset: 0; }
+.plan svg { width: 100%; height: auto; display: block; }
+.plan .linie { stroke-dasharray: 600; stroke-dashoffset: 600; }
+.plan.da .linie { animation: zeichnen 2.4s ease-out forwards; }
+@keyframes zeichnen { to { stroke-dashoffset: 0; } }
+
+/* Farben */
+.farben { display: flex; flex-wrap: wrap; gap: 14px; }
+.farbe {
+  width: 74px; height: 74px; border-radius: 22px; background: linear-gradient(135deg, var(--a), var(--b));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 14px 26px -14px var(--a);
+  animation: welle 3.2s ease-in-out infinite; animation-delay: calc(var(--i) * .12s);
+}
+.farbe.plus { background: conic-gradient(from 0deg, #ff6b6b, #fbbf5c, #6ee7b7, #60a5fa, #a78bfa, #f472b6, #ff6b6b); display: grid; place-items: center; }
+.farbe.plus::after { content: "+"; width: 40px; height: 40px; border-radius: 50%; background: var(--grund); display: grid; place-items: center; font-size: 26px; font-weight: 700; }
+@keyframes welle { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-14px) rotate(-4deg); } }
+
+/* Face ID + Sprache */
+.paar { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 860px) { .paar { grid-template-columns: 1fr; } }
+.karte { background: var(--flaeche); border: 1px solid var(--linie); border-radius: 26px; padding: 34px 30px; display: grid; gap: 14px; justify-items: start; }
+.karte h3 { font-size: 26px; }
+.karte p { color: var(--leise); font-size: 17px; }
+.faceid { width: 110px; height: 110px; position: relative; }
+.faceid svg { width: 100%; height: 100%; }
+.faceid .scan { stroke-dasharray: 340; stroke-dashoffset: 340; animation: scannen 3.2s ease-in-out infinite; }
+.faceid .ok { opacity: 0; animation: freigabe 3.2s ease-in-out infinite; }
+@keyframes scannen { 0% { stroke-dashoffset: 340; } 45%, 100% { stroke-dashoffset: 0; } }
+@keyframes freigabe { 0%, 48% { opacity: 0; transform: scale(.6); } 58%, 85% { opacity: 1; transform: scale(1); } 100% { opacity: 0; } }
+.faceid .ok { transform-box: fill-box; transform-origin: center; }
+.sprache { font-family: var(--display); font-weight: 800; font-size: clamp(48px, 7vw, 84px); line-height: 1; height: 1.05em; overflow: hidden; }
+.sprache div { animation: tauschen 4.4s cubic-bezier(.7,0,.3,1) infinite; }
+.sprache span { display: block; height: 1.05em; }
+.sprache span:nth-child(2) { color: var(--violett); }
+@keyframes tauschen { 0%, 40% { transform: translateY(0); } 50%, 90% { transform: translateY(-50%); } 100% { transform: translateY(0); } }
+
+/* Preis */
+.preis { text-align: center; padding: 140px 0; overflow: hidden; }
+.preis h2 { font-size: clamp(54px, 10vw, 150px); font-weight: 800; line-height: .95; }
+.preis h2 span { display: block; }
+.preis h2 span:nth-child(2) { color: var(--violett); }
+.preis h2 span:nth-child(3) { -webkit-text-stroke: 2px var(--leise); color: transparent; }
+.preis p { color: var(--leise); margin: 24px auto 30px; max-width: 44ch; }
+.preis .knoepfe { justify-content: center; }
+.ring { position: absolute; left: 50%; top: 50%; width: 900px; height: 900px; translate: -50% -50%; border-radius: 50%; border: 1px solid var(--linie); z-index: -1; animation: drehen 40s linear infinite; }
+.ring::before { content: ""; position: absolute; top: -6px; left: 50%; width: 12px; height: 12px; border-radius: 50%; background: var(--violett); box-shadow: 0 0 20px var(--violett); }
+.ring.zwei { width: 620px; height: 620px; animation-duration: 28s; animation-direction: reverse; }
+.ring.zwei::before { background: var(--koralle); box-shadow: 0 0 20px var(--koralle); }
+@keyframes drehen { to { transform: rotate(360deg); } }
+
+footer { border-top: 1px solid var(--linie); padding: 28px 0 44px; color: var(--still); font-size: 15px; }
+footer .huelle { display: flex; flex-wrap: wrap; gap: 14px 30px; justify-content: space-between; }
+footer nav { display: flex; gap: 22px; flex-wrap: wrap; }
+footer a { text-decoration: none; } footer a:hover { color: var(--hell); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .plan .linie { stroke-dashoffset: 0; } .faceid .scan { stroke-dashoffset: 0; } .faceid .ok { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<header class="kopf">
+  <div class="huelle">
+    <a class="logo" href="#top">
+      <svg viewBox="0 0 180 180" aria-hidden="true"><rect width="180" height="180" fill="#15131F"/><circle cx="90" cy="90" r="52" fill="none" stroke="#2A2638" stroke-width="14"/><circle cx="90" cy="90" r="52" fill="none" stroke="#A78BFA" stroke-width="14" stroke-linecap="round" stroke-dasharray="250 400" transform="rotate(-90 90 90)"/><path d="M68 92 L84 108 L114 76" fill="none" stroke="#F4F2FF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      StopIt
+    </a>
+    <nav aria-label="Abschnitte">
+      <a href="#streaks">Streaks</a>
+      <a href="#modi">Abhaken & Zählen</a>
+      <a href="#mehr">Mehr</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a class="garten" href="../index.html">← AppGarten</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="huelle">
+      <div>
+        <div class="marke-klein">StopIt · Gewohnheiten</div>
+        <h1>Weniger ist dein neuer <span class="wechsel" id="wechsel">Streak.</span></h1>
+        <p>Weniger Handy im Bett, weniger Süßes, weniger Zigaretten. Hak jeden Tag ab, ob du's geschafft hast, und sieh zu, wie dein Streak wächst.</p>
+        <div class="knoepfe">
+          <!-- Hier später den echten App-Store-Link eintragen -->
+          <a class="store" href="#app-store" aria-label="StopIt im App Store laden">
+            <svg viewBox="0 0 180 180" aria-hidden="true"><rect width="180" height="180" fill="#15131F"/><circle cx="90" cy="90" r="52" fill="none" stroke="#2A2638" stroke-width="14"/><circle cx="90" cy="90" r="52" fill="none" stroke="#A78BFA" stroke-width="14" stroke-linecap="round" stroke-dasharray="250 400" transform="rotate(-90 90 90)"/><path d="M68 92 L84 108 L114 76" fill="none" stroke="#F4F2FF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span><small>Kostenlos laden im</small><strong>App Store</strong></span>
+          </a>
+          <a class="leer" href="#streaks">So funktioniert's</a>
+        </div>
+      </div>
+
+      <div class="handy" aria-label="So sieht StopIt aus">
+        <div class="schirm">
+          <div class="insel"></div>
+          <div class="datum" id="datum">Dienstag</div>
+          <h4>Heute</h4>
+          <div class="kachel" style="--a:#8B5CF6;--b:#C4B5FD">
+            <div><b>Kein Handy im Bett</b><small>12 Tage Streak</small></div>
+            <div class="haken" id="h1"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17 L19 7"/></svg></div>
+          </div>
+          <div class="kachel" style="--a:#F26B5B;--b:#FFB199">
+            <div><b>Zigaretten</b><small>Ziel heute: höchstens 8</small></div>
+            <div class="menge zahl"><span id="zig">0</span><small>von 8</small></div>
+            <div class="leiste"><i id="zigLeiste"></i></div>
+          </div>
+          <div class="kachel" style="--a:#10B981;--b:#86EFAC">
+            <div><b>Keine Süßigkeiten</b><small>5 von 7 Tagen diese Woche</small></div>
+            <div class="haken" id="h2"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17 L19 7"/></svg></div>
+          </div>
+          <div class="kachel" style="--a:#F59E0B;--b:#FDE68A">
+            <div><b>Kein Energy Drink</b><small>3 Tage Streak</small></div>
+            <div class="haken" id="h3"><svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17 L19 7"/></svg></div>
+          </div>
+          <div class="flamme"><span>Längster Streak</span><b class="zahl"><span id="laengster">12</span> Tage</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="streaks">
+    <div class="huelle">
+      <div class="titel">
+        <div class="marke-klein">Streaks</div>
+        <h2>Jeder Tag zählt. <em>Jeder.</em></h2>
+        <p>Tipp auf eine Gewohnheit und du siehst den ganzen Monat. Lila heißt geschafft, rot heißt nicht. Und der Streak zeigt, wie viele Tage du schon am Stück durchhältst.</p>
+      </div>
+      <div class="streak">
+        <div><div class="riesenzahl zahl" id="riesig">0</div><span>Tage am Stück</span></div>
+        <div class="monat" aria-label="Beispiel-Kalender">
+          <div class="monat-kopf">November 2026 <span>Kein Handy im Bett</span></div>
+          <div class="wochentage"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>
+          <div class="tage" id="tage"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="modi">
+    <div class="huelle">
+      <div class="titel">
+        <div class="marke-klein">Zwei Arten</div>
+        <h2>Abhaken oder <em>runterzählen</em></h2>
+        <p>Manches lässt man ganz. Anderes wird jeden Tag ein bisschen weniger. StopIt kann beides.</p>
+      </div>
+      <div class="modi">
+        <div class="modus">
+          <h3>Abhaken</h3>
+          <p>Hast du's heute geschafft? Ein Tipp, fertig. Mit Wochenziel, zum Beispiel 5 von 7 Tagen.</p>
+          <div class="reihe" id="reihe"></div>
+        </div>
+        <div class="modus">
+          <h3>Menge zählen</h3>
+          <p>Trag ein, wie viel es heute war. StopIt rechnet aus, wie viel es jeden Tag sein darf, bis du dein Ziel erreichst.</p>
+          <div class="plan" id="plan">
+            <svg viewBox="0 0 400 170" aria-label="Reduktionsplan von 20 auf 5 pro Tag">
+              <g stroke="#26223A" stroke-width="1"><line x1="30" y1="20" x2="390" y2="20"/><line x1="30" y1="70" x2="390" y2="70"/><line x1="30" y1="120" x2="390" y2="120"/></g>
+              <g fill="#6E6890" font-size="11" font-family="Figtree, sans-serif" font-weight="600"><text x="4" y="24">20</text><text x="4" y="74">13</text><text x="4" y="124">5</text><text x="30" y="160">Heute</text><text x="350" y="160">Ziel</text></g>
+              <path d="M30 20 L390 120" stroke="#FF8A7A" stroke-width="2" stroke-dasharray="4 6" opacity=".6"/>
+              <path class="linie" d="M30 20 L66 34 L102 30 L138 52 L174 58 L210 66 L246 82 L282 86 L318 100 L354 108 L390 120" fill="none" stroke="#FF8A7A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="390" cy="120" r="6" fill="#FF8A7A"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="mehr">
+    <div class="huelle">
+      <div class="titel">
+        <div class="marke-klein">Deins</div>
+        <h2>Jede Gewohnheit in <em>ihrer Farbe</em></h2>
+        <p>Such dir für jede Gewohnheit eine Farbe aus oder misch dir eine eigene. Sie zieht sich durch Kachel, Kalender und Fortschritt.</p>
+      </div>
+      <div class="farben" aria-hidden="true">
+        <div class="farbe" style="--a:#8B5CF6;--b:#C4B5FD;--i:0"></div>
+        <div class="farbe" style="--a:#F26B5B;--b:#FFB199;--i:1"></div>
+        <div class="farbe" style="--a:#10B981;--b:#86EFAC;--i:2"></div>
+        <div class="farbe" style="--a:#F59E0B;--b:#FDE68A;--i:3"></div>
+        <div class="farbe" style="--a:#3B82F6;--b:#93C5FD;--i:4"></div>
+        <div class="farbe" style="--a:#EC4899;--b:#F9A8D4;--i:5"></div>
+        <div class="farbe" style="--a:#64748B;--b:#CBD5E1;--i:6"></div>
+        <div class="farbe plus" style="--a:#A78BFA;--i:7"></div>
+      </div>
+
+      <div class="paar" style="margin-top:60px">
+        <div class="karte">
+          <div class="faceid" aria-hidden="true">
+            <svg viewBox="0 0 110 110">
+              <rect x="8" y="8" width="94" height="94" rx="26" fill="none" stroke="#26223A" stroke-width="4"/>
+              <path class="scan" d="M34 8 H22 a14 14 0 0 0 -14 14 V34 M76 8 H88 a14 14 0 0 1 14 14 V34 M102 76 V88 a14 14 0 0 1 -14 14 H76 M34 102 H22 a14 14 0 0 1 -14 -14 V76" fill="none" stroke="#A78BFA" stroke-width="5" stroke-linecap="round"/>
+              <g stroke="#6E6890" stroke-width="4" stroke-linecap="round" fill="none"><path d="M40 42 V48"/><path d="M70 42 V48"/><path d="M55 44 V62 H50"/><path d="M42 72 Q55 82 68 72"/></g>
+              <g class="ok"><circle cx="55" cy="55" r="30" fill="#2ECC71"/><path d="M42 56 L51 65 L69 46" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+            </svg>
+          </div>
+          <h3>Nur für dich</h3>
+          <p>Schütz StopIt mit Face ID oder Touch ID. Deine Gewohnheiten gehen niemanden etwas an.</p>
+        </div>
+        <div class="karte">
+          <div class="sprache" aria-label="Weniger, auf Englisch: Less"><div><span>Weniger.</span><span>Less.</span></div></div>
+          <h3>Deutsch oder Englisch</h3>
+          <p>Gleich beim ersten Start fragt StopIt nach deiner Sprache. Umstellen kannst du jederzeit.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="preis">
+    <div class="ring" aria-hidden="true"></div>
+    <div class="ring zwei" aria-hidden="true"></div>
+    <div class="huelle">
+      <h2><span>Kostenlos.</span><span>Alles drin.</span><span>Kein Abo.</span></h2>
+      <p>Keine Werbung, kein Tracking, keine Bezahlschranke. Einfach laden und anfangen.</p>
+      <div class="knoepfe">
+        <a class="store" href="#app-store" aria-label="StopIt im App Store laden">
+          <svg viewBox="0 0 180 180" aria-hidden="true"><rect width="180" height="180" fill="#15131F"/><circle cx="90" cy="90" r="52" fill="none" stroke="#2A2638" stroke-width="14"/><circle cx="90" cy="90" r="52" fill="none" stroke="#A78BFA" stroke-width="14" stroke-linecap="round" stroke-dasharray="250 400" transform="rotate(-90 90 90)"/><path d="M68 92 L84 108 L114 76" fill="none" stroke="#F4F2FF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span><small>Kostenlos laden im</small><strong>App Store</strong></span>
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="huelle">
+    <span>StopIt · eine App aus dem <a href="../index.html" style="color:var(--minze)">AppGarten</a></span>
+    <nav aria-label="Rechtliches">
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="../impressum.html">Impressum</a>
+      <a href="mailto:appgarten@outlook.com">Support</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  const ruhig = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const wt = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+  const mo = ["Jan.","Feb.","März","Apr.","Mai","Juni","Juli","Aug.","Sep.","Okt.","Nov.","Dez."];
+  const d = new Date();
+  document.getElementById("datum").textContent = `${wt[d.getDay()]}, ${d.getDate()}. ${mo[d.getMonth()]}`;
+
+  // Wechselndes Wort im Titel
+  const worte = ["Streak.", "Rekord.", "Normal.", "Ziel."];
+  const w = document.getElementById("wechsel");
+  let wi = 0;
+  if (!ruhig) setInterval(() => {
+    wi = (wi + 1) % worte.length;
+    w.animate([{ transform: "translateY(0)", opacity: 1 }, { transform: "translateY(-30%)", opacity: 0 }], { duration: 250, easing: "ease-in" }).onfinish = () => {
+      w.textContent = worte[wi];
+      w.animate([{ transform: "translateY(30%)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { duration: 350, easing: "cubic-bezier(.2,1.4,.4,1)" });
+    };
+  }, 2600);
+
+  // Handy: der Tag wird abgehakt
+  const h1 = document.getElementById("h1"), h2 = document.getElementById("h2"), h3 = document.getElementById("h3");
+  const zig = document.getElementById("zig"), zl = document.getElementById("zigLeiste"), laengster = document.getElementById("laengster");
+  function handyTag() {
+    [h1, h2, h3].forEach(h => h.classList.remove("an"));
+    zig.textContent = "0"; zl.style.width = "0%"; laengster.textContent = "12";
+    const plan = [
+      [700, () => { h1.classList.add("an"); laengster.textContent = "13"; }],
+      [1300, () => zaehle(0, 6)],
+      [2600, () => h2.classList.add("an")],
+      [3300, () => h3.classList.add("an")],
+      [7000, handyTag]
+    ];
+    plan.forEach(([t, f]) => setTimeout(f, t));
+  }
+  function zaehle(von, bis) {
+    let n = von;
+    const s = setInterval(() => { n++; zig.textContent = n; zl.style.width = (n / 8 * 100) + "%"; if (n >= bis) clearInterval(s); }, 160);
+  }
+  if (ruhig) { [h1, h2, h3].forEach(h => h.classList.add("an")); zig.textContent = "6"; zl.style.width = "75%"; laengster.textContent = "13"; }
+  else handyTag();
+
+  // Kalender + Riesenzahl
+  const tage = document.getElementById("tage");
+  const riesig = document.getElementById("riesig");
+  const muster = "111101111111111110111111111111".split(""); // 30 Tage November
+  const versatz = 6; // 1. November 2026 ist ein Sonntag
+  for (let i = 0; i < versatz; i++) { const e = document.createElement("div"); e.className = "tag leer"; tage.appendChild(e); }
+  const zellen = muster.map((_, i) => { const e = document.createElement("div"); e.className = "tag"; e.textContent = i + 1; tage.appendChild(e); return e; });
+  function fuellen() {
+    zellen.forEach(z => z.classList.remove("ok", "nein", "knall"));
+    riesig.textContent = "0";
+    let i = 0, streak = 0;
+    const tick = () => {
+      if (i >= zellen.length) { setTimeout(fuellen, 4000); return; }
+      const ok = muster[i] === "1";
+      zellen[i].classList.add(ok ? "ok" : "nein", "knall");
+      const z = zellen[i]; setTimeout(() => z.classList.remove("knall"), 220);
+      streak = ok ? streak + 1 : 0;
+      riesig.textContent = streak;
+      i++; setTimeout(tick, 110);
+    };
+    tick();
+  }
+  // Ruhezustand: Monat schon ausgefüllt, die Animation startet beim Hinscrollen
+  zellen.forEach((z, i) => z.classList.add(muster[i] === "1" ? "ok" : "nein")); riesig.textContent = "12";
+
+  // Abhaken-Reihe (Woche)
+  const reihe = document.getElementById("reihe");
+  const woche = "1101111".split("");
+  const knoepfe = woche.map(() => { const e = document.createElement("div"); e.className = "haken"; e.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17 L19 7"/></svg>'; reihe.appendChild(e); return e; });
+  function wocheLauf() {
+    knoepfe.forEach(k => k.classList.remove("an", "nein"));
+    woche.forEach((v, i) => setTimeout(() => {
+      if (v === "1") knoepfe[i].classList.add("an");
+      else { knoepfe[i].classList.add("nein"); knoepfe[i].querySelector("svg").innerHTML = '<path d="M7 7 L17 17 M17 7 L7 17"/>'; }
+    }, 300 + i * 260));
+    setTimeout(wocheLauf, 5200);
+  }
+  woche.forEach((v, i) => {
+    if (v === "1") knoepfe[i].classList.add("an");
+    else { knoepfe[i].classList.add("nein"); knoepfe[i].querySelector("svg").innerHTML = '<path d="M7 7 L17 17 M17 7 L7 17"/>'; }
+  });
+
+  // Starten, wenn sichtbar
+  const plan = document.getElementById("plan");
+  if (!ruhig) {
+    let kalenderLaeuft = false, wocheLaeuft = false;
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return;
+      if (e.target.id === "tage" && !kalenderLaeuft) { kalenderLaeuft = true; fuellen(); }
+      if (e.target.id === "reihe" && !wocheLaeuft) { wocheLaeuft = true; wocheLauf(); }
+      if (e.target.id === "plan") plan.classList.add("da");
+    }), { threshold: .3 });
+    [tage, reihe, plan].forEach(el => io.observe(el));
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GipfelJäger</title>
+<meta name="description" content="GipfelJäger – sammle die Gipfel der Alpen. Aufzeichnen, oben ankommen, Gipfelpunkte sammeln.">
+<link rel="stylesheet" href="../fonts/fonts.css">
+<style>
+/* Plan: eine einzige Nachtwelt in Dunkelgrün, wie der Startbildschirm der App.
+   Layout: Hero als Berg-Szene mit Zickzack-Aufstieg, darunter Wegweiser, Handy, Punkte-Profil, Gipfelpfad. */
+:root {
+  --nacht: #0B1412;
+  --hang: #12231F;
+  --grat: #16302A;
+  --spur: #1E3833;
+  --tuerkis: #5DCAA5;
+  --tuerkis-tief: #1D9E75;
+  --schnee: #E1F5EE;
+  --nebel: #8FB5AA;
+  --moos: #5F8F84;
+  --markierung: #D9534F;
+  --display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --text: "Barlow", system-ui, -apple-system, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--nacht);
+  color: var(--schnee);
+  font-family: var(--text);
+  font-size: 18px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+a { color: inherit; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 0.95; letter-spacing: 0.01em; }
+.zahl { font-variant-numeric: tabular-nums; }
+.huelle { width: min(1180px, 100% - 32px); margin-inline: auto; }
+:focus-visible { outline: 3px solid var(--tuerkis); outline-offset: 3px; border-radius: 6px; }
+
+/* ---------- Kopfzeile ---------- */
+.kopf {
+  position: absolute; inset: 0 0 auto 0; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px max(16px, calc((100% - 1180px) / 2));
+}
+.marke { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 24px; text-decoration: none; }
+.marke svg { width: 34px; height: 34px; border-radius: 9px; }
+.kopf nav { display: flex; gap: 22px; font-weight: 500; font-size: 16px; }
+.kopf nav a { text-decoration: none; color: var(--nebel); transition: color .2s; }
+.kopf nav a:hover { color: var(--schnee); }
+.kopf nav a.garten-link { color: var(--tuerkis); }
+@media (max-width: 640px) { .kopf nav { display: none; } }
+
+/* ---------- Hero ---------- */
+.hero { position: relative; overflow: hidden; padding-top: 120px; }
+.hero-text { position: relative; z-index: 3; }
+.hero-text > * { max-width: 640px; }
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--display); font-weight: 700; font-size: 16px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--tuerkis);
+}
+.eyebrow .blaze { width: 26px; height: 12px; background: linear-gradient(var(--markierung) 0 33%, #fff 33% 66%, var(--markierung) 66%); border-radius: 2px; }
+.hero h1 { font-size: clamp(60px, 8.4vw, 118px); font-weight: 800; margin: 14px 0 18px; text-transform: uppercase; }
+.hero h1 span { color: var(--tuerkis); display: block; }
+.hero p.lead { font-size: clamp(18px, 2vw, 22px); color: var(--nebel); max-width: 34ch; }
+.knoepfe { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.knopf {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--display); font-weight: 700; font-size: 20px; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 14px 24px; border-radius: 999px; border: 0; cursor: pointer; text-decoration: none;
+  transition: transform .2s, background .2s, box-shadow .2s;
+}
+.knopf.voll { background: var(--tuerkis); color: var(--nacht); box-shadow: 0 10px 30px -10px rgba(93,202,165,.6); }
+.knopf.voll:hover { transform: translateY(-2px); box-shadow: 0 16px 36px -10px rgba(93,202,165,.75); }
+.knopf.leer { background: transparent; color: var(--schnee); box-shadow: inset 0 0 0 2px var(--spur); }
+.knopf.leer:hover { box-shadow: inset 0 0 0 2px var(--tuerkis); }
+.knopf small { font-family: var(--text); font-size: 13px; text-transform: none; letter-spacing: 0; font-weight: 500; opacity: .75; }
+
+.szene { position: relative; margin-top: -230px; }
+.szene > svg { display: block; width: 100%; height: clamp(320px, 47vw, 600px); }
+@media (max-width: 1100px) { .szene { margin-top: -60px; } }
+@media (max-width: 700px) { .szene { margin-top: 10px; } }
+
+/* Höhenmesser über der Szene */
+.hoehenmesser {
+  position: absolute; left: max(16px, calc((100% - 1180px) / 2)); bottom: 9%;
+  display: grid; gap: 2px; z-index: 3;
+}
+.hoehenmesser .wert { font-family: var(--display); font-weight: 800; font-size: clamp(40px, 6vw, 76px); line-height: 1; }
+.hoehenmesser .wert sup { font-size: .4em; color: var(--tuerkis); vertical-align: top; margin-left: 4px; }
+.hoehenmesser .klein { font-size: 14px; color: var(--moos); letter-spacing: .12em; text-transform: uppercase; font-weight: 600; }
+.nochmal {
+  justify-self: start; margin-top: 8px; background: none; border: 0; color: var(--tuerkis); font: 600 14px var(--text);
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 4px 0;
+}
+
+/* Banner wie in der App */
+.banner {
+  position: absolute; right: max(16px, calc((100% - 1180px) / 2)); top: 28%; z-index: 4;
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 18px 10px 10px; border-radius: 999px;
+  background: rgba(225,245,238,.92); color: #10221d;
+  box-shadow: 0 18px 40px -12px rgba(0,0,0,.6);
+  backdrop-filter: blur(10px);
+  transform: translateY(-14px) scale(.96); opacity: .0; transition: transform .5s cubic-bezier(.2,1.4,.4,1), opacity .4s;
+  pointer-events: none;
+}
+.banner.zeigen { transform: none; opacity: 1; }
+.banner .kreis { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(160deg, #6fe0a0, #2f9e5f); display: grid; place-items: center; }
+.banner b { display: block; font-size: 15px; }
+.banner span { font-size: 13px; color: #3e5a52; font-weight: 600; }
+@media (max-width: 640px) { .banner { top: 14px; right: 16px; left: 16px; } .hoehenmesser { bottom: 18px; } }
+.ohne-js .banner { opacity: 1; transform: none; }
+
+/* ---------- Abschnitte ---------- */
+section { padding: 110px 0; position: relative; }
+.titel { display: grid; gap: 12px; margin-bottom: 48px; max-width: 760px; }
+.titel h2 { font-size: clamp(44px, 6.5vw, 84px); font-weight: 800; text-transform: uppercase; }
+.titel p { color: var(--nebel); max-width: 60ch; }
+
+/* Wegweiser */
+.wegweiser { display: grid; gap: 18px; }
+.schild {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 22px;
+  background: var(--schnee); color: #0f231d;
+  padding: 22px 64px 22px 26px;
+  clip-path: polygon(0 0, calc(100% - 42px) 0, 100% 50%, calc(100% - 42px) 100%, 0 100%);
+  transition: transform .35s cubic-bezier(.2,1.2,.4,1);
+}
+.schild:nth-child(2) { margin-left: clamp(0px, 6vw, 80px); }
+.schild:nth-child(3) { margin-left: clamp(0px, 12vw, 160px); }
+.schild:hover { transform: translateX(10px); }
+.schild .blaze {
+  width: 54px; height: 54px; border-radius: 6px;
+  background: linear-gradient(var(--markierung) 0 33%, #fff 33% 66%, var(--markierung) 66%);
+  display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 26px; color: #0f231d;
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.08);
+}
+.schild h3 { font-size: clamp(28px, 3.4vw, 40px); font-weight: 800; text-transform: uppercase; }
+.schild p { font-size: 16px; color: #3d5a51; margin-top: 4px; max-width: 58ch; }
+.schild .zeit { font-family: var(--display); font-weight: 700; font-size: 22px; white-space: nowrap; color: #0f231d; }
+@media (max-width: 640px) {
+  .schild { grid-template-columns: auto 1fr; padding-right: 54px; }
+  .schild .zeit { grid-column: 2; }
+}
+
+/* Handy + Text */
+.zweispaltig { display: grid; grid-template-columns: 1fr minmax(280px, 340px); gap: 64px; align-items: center; }
+@media (max-width: 900px) { .zweispaltig { grid-template-columns: 1fr; } }
+.handy {
+  position: relative; width: 100%; max-width: 330px; aspect-ratio: 9 / 19.2; margin-inline: auto;
+  border-radius: 48px; padding: 12px; background: #050a09;
+  box-shadow: 0 0 0 2px #24403a, 0 40px 80px -30px rgba(93,202,165,.35);
+  transform: rotate(-4deg); transition: transform .6s cubic-bezier(.2,1.2,.4,1);
+}
+.handy:hover { transform: rotate(0deg) translateY(-6px); }
+.bildschirm { position: relative; height: 100%; border-radius: 38px; overflow: hidden; background: #dfe9e1; }
+.bildschirm svg.karte { position: absolute; inset: 0; width: 100%; height: 100%; }
+.insel { position: absolute; top: 10px; left: 50%; translate: -50% 0; width: 92px; height: 26px; border-radius: 20px; background: #000; z-index: 3; }
+.app-banner {
+  position: absolute; left: 10px; right: 10px; top: 46px; z-index: 3;
+  display: flex; align-items: center; gap: 9px; padding: 7px 12px 7px 7px; border-radius: 999px;
+  background: rgba(255,255,255,.92); color: #10221d; box-shadow: 0 10px 24px -8px rgba(0,0,0,.35);
+  animation: bannerSchleife 7s infinite;
+}
+.app-banner .kreis { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(160deg, #6fe0a0, #2f9e5f); display: grid; place-items: center; flex: none; }
+.app-banner b { display: block; font-size: 11px; color: #4b6a62; }
+.app-banner span { font-size: 13px; font-weight: 600; }
+@keyframes bannerSchleife {
+  0%, 8% { transform: translateY(-80px); opacity: 0; }
+  14%, 62% { transform: none; opacity: 1; }
+  70%, 100% { transform: translateY(-80px); opacity: 0; }
+}
+.rang-pill {
+  position: absolute; left: 50%; translate: -50% 0; bottom: 92px; z-index: 2;
+  display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: 999px;
+  background: rgba(255,255,255,.85); color: #10221d; font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.rang-pill i { width: 20px; height: 20px; border-radius: 50%; background: #7a8b86; box-shadow: 0 0 0 2px #3fb68a; }
+.auf-knopf {
+  position: absolute; left: 16px; right: 16px; bottom: 30px; z-index: 2;
+  background: #14a8a8; color: #fff; border-radius: 999px; padding: 14px; text-align: center;
+  font-weight: 600; font-size: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;
+  box-shadow: 0 8px 18px -6px rgba(0,0,0,.35);
+}
+.auf-knopf::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: inset 0 0 0 3px #14a8a8, inset 0 0 0 8px #fff; }
+.punkt-puls { transform-box: fill-box; transform-origin: center; animation: puls 2.2s infinite; }
+@keyframes puls { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(3.2); opacity: 0; } }
+
+.liste { display: grid; }
+.liste .zeile { display: grid; grid-template-columns: 44px 1fr; gap: 16px; padding: 18px 0; border-top: 1px solid var(--spur); }
+.liste .zeile:last-child { border-bottom: 1px solid var(--spur); }
+.liste svg { width: 30px; height: 30px; color: var(--tuerkis); margin-top: 3px; }
+.liste h3 { font-size: 26px; font-weight: 700; text-transform: uppercase; }
+.liste p { color: var(--nebel); font-size: 16px; }
+
+/* Punkte-Profil */
+.profil {
+  display: grid; grid-template-columns: repeat(8, 1fr); align-items: end; gap: clamp(4px, 1.2vw, 14px);
+  height: 340px; padding: 0 4px; border-bottom: 2px solid var(--spur); position: relative;
+}
+.saeule { position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+.saeule .berg {
+  width: 100%; height: var(--h);
+  background: linear-gradient(180deg, var(--tuerkis) 0%, var(--tuerkis-tief) 55%, var(--grat) 100%);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  transform-origin: bottom; transition: transform .4s, filter .3s;
+}
+.saeule:hover .berg { filter: brightness(1.15); transform: scaleY(1.03); }
+.saeule .gp {
+  font-family: var(--display); font-weight: 800; font-size: clamp(20px, 2.6vw, 34px); line-height: 1; margin-bottom: 8px;
+}
+.saeule .gp small { font-size: .5em; color: var(--tuerkis); margin-left: 2px; }
+.achse { display: grid; grid-template-columns: repeat(8, 1fr); gap: clamp(4px, 1.2vw, 14px); margin-top: 10px; }
+.achse span { text-align: center; font-size: clamp(11px, 1.3vw, 14px); color: var(--moos); font-weight: 600; }
+.hinweis { margin-top: 26px; color: var(--nebel); font-size: 16px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.hinweis b { color: var(--schnee); }
+
+/* Gipfelpfad (Ränge als Höhenprofil) */
+.pfad { overflow-x: auto; padding-bottom: 12px; }
+.stufen { display: flex; align-items: flex-end; gap: 12px; min-width: 1150px; height: 320px; }
+.stufe { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; height: 100%; }
+.stufe .block {
+  height: var(--h); border-radius: 10px 10px 0 0; background: var(--hang);
+  border-top: 3px solid var(--tuerkis-tief); position: relative;
+}
+.stufe:last-child .block { background: linear-gradient(180deg, #3a2d14, var(--hang)); border-top-color: #e3b341; }
+.stufe .name { font-family: var(--display); font-weight: 700; font-size: 17px; text-transform: uppercase; line-height: 1; overflow-wrap: anywhere; }
+.stufe .ab { font-size: 13px; color: var(--moos); font-weight: 600; }
+.stufe .ring {
+  width: 30px; height: 30px; border-radius: 50%; border: 3px solid var(--tuerkis); background: var(--nacht);
+}
+.stufe:nth-child(n+10) .ring { border-color: #e3b341; }
+
+/* Features als Raster ohne Karten */
+.raster { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--spur); border-left: 1px solid var(--spur); }
+.raster > div { padding: 30px 26px; border-right: 1px solid var(--spur); border-bottom: 1px solid var(--spur); transition: background .3s; }
+.raster > div:hover { background: rgba(93,202,165,.06); }
+.raster svg { width: 34px; height: 34px; color: var(--tuerkis); margin-bottom: 14px; }
+.raster h3 { font-size: 28px; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
+.raster p { color: var(--nebel); font-size: 16px; }
+@media (max-width: 900px) { .raster { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .raster { grid-template-columns: 1fr; } }
+
+/* Schluss */
+.schluss { text-align: left; padding: 120px 0 80px; overflow: hidden; }
+.schluss h2 { font-size: clamp(56px, 10vw, 140px); font-weight: 800; text-transform: uppercase; }
+.schluss h2 span { color: var(--tuerkis); }
+.schluss .grat { position: absolute; inset: auto 0 0 0; height: 160px; opacity: .9; z-index: -1; }
+footer { border-top: 1px solid var(--spur); padding: 26px 0 40px; color: var(--moos); font-size: 15px; }
+footer .huelle { display: flex; flex-wrap: wrap; gap: 14px 28px; justify-content: space-between; }
+footer nav { display: flex; gap: 22px; flex-wrap: wrap; }
+footer a { text-decoration: none; }
+footer a:hover { color: var(--schnee); }
+
+/* Sterne */
+.stern { animation: funkeln var(--d, 3s) ease-in-out infinite alternate; }
+@keyframes funkeln { from { opacity: .25; } to { opacity: 1; } }
+
+
+/* App-Store-Knopf */
+.store {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 10px 22px 10px 10px; border-radius: 16px; text-decoration: none;
+  background: var(--schnee); color: var(--nacht);
+  position: relative; overflow: hidden; isolation: isolate;
+  box-shadow: 0 14px 34px -12px rgba(93,202,165,.6);
+  transition: transform .25s cubic-bezier(.2,1.4,.4,1), box-shadow .25s;
+}
+.store:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 20px 40px -12px rgba(93,202,165,.8); }
+.store svg { width: 44px; height: 44px; border-radius: 11px; flex: none; }
+.store small { display: block; font-size: 12px; font-weight: 600; color: #3d5a51; line-height: 1.1; }
+.store strong { display: block; font-family: var(--display); font-weight: 800; font-size: 24px; text-transform: uppercase; line-height: 1; }
+.store::after {
+  content: ""; position: absolute; inset: -40% auto -40% -60%; width: 40%; z-index: -1;
+  background: linear-gradient(100deg, transparent, rgba(93,202,165,.45), transparent);
+  transform: skewX(-20deg); animation: glanz 3.8s ease-in-out infinite;
+}
+@keyframes glanz { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+
+/* Laufband mit Gipfeln */
+.laufband { border-block: 1px solid var(--spur); overflow: hidden; background: var(--hang); }
+.laufband .spur-innen { display: flex; width: max-content; animation: laufen 48s linear infinite; }
+.laufband:hover .spur-innen { animation-play-state: paused; }
+.laufband span {
+  display: inline-flex; align-items: baseline; gap: 10px; padding: 16px 28px;
+  font-family: var(--display); font-weight: 700; font-size: 24px; text-transform: uppercase; white-space: nowrap;
+}
+.laufband span em { font-style: normal; font-family: var(--text); font-size: 15px; color: var(--moos); font-weight: 600; text-transform: none; }
+.laufband span b { color: var(--tuerkis); font-size: 18px; }
+.laufband span::after { content: "▲"; font-size: 10px; color: var(--tuerkis-tief); margin-left: 18px; }
+@keyframes laufen { to { transform: translateX(-50%); } }
+
+/* Sternschnuppe */
+.schnuppe { stroke: url(#schnuppe); stroke-width: 2; stroke-linecap: round; opacity: 0; }
+.schnuppe.flug { animation: flug 1.2s ease-out forwards; }
+@keyframes flug {
+  0% { opacity: 0; transform: translate(0,0); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-260px, 120px); }
+}
+.ebene { transition: transform .2s linear; will-change: transform; }
+
+/* Bewegung beim Hineinscrollen (Startzustand bleibt sichtbar) */
+.js .schild.warten { transform: translateX(-40px); }
+.schild.da { animation: reinRutschen .8s cubic-bezier(.2,1.2,.4,1) both; }
+.schild.da:nth-child(2) { animation-delay: .12s; }
+.schild.da:nth-child(3) { animation-delay: .24s; }
+@keyframes reinRutschen { from { transform: translateX(-40px); } to { transform: none; } }
+.schild .blaze { animation: wackeln 5s ease-in-out infinite; }
+.schild:nth-child(2) .blaze { animation-delay: .6s; }
+.schild:nth-child(3) .blaze { animation-delay: 1.2s; }
+@keyframes wackeln { 0%, 86%, 100% { transform: rotate(0); } 90% { transform: rotate(-8deg); } 94% { transform: rotate(6deg); } }
+
+.profil.warten .berg { transform: scaleY(.12); }
+.profil.da .berg { animation: wachsen 1.1s cubic-bezier(.2,1.1,.3,1) both; }
+@keyframes wachsen { from { transform: scaleY(.12); } to { transform: none; } }
+.profil.da .saeule:nth-child(2) .berg { animation-delay: .08s; }
+.profil.da .saeule:nth-child(3) .berg { animation-delay: .16s; }
+.profil.da .saeule:nth-child(4) .berg { animation-delay: .24s; }
+.profil.da .saeule:nth-child(5) .berg { animation-delay: .32s; }
+.profil.da .saeule:nth-child(6) .berg { animation-delay: .40s; }
+.profil.da .saeule:nth-child(7) .berg { animation-delay: .48s; }
+.profil.da .saeule:nth-child(8) .berg { animation-delay: .56s; }
+
+.stufen { position: relative; }
+.kletterer {
+  position: absolute; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--tuerkis); box-shadow: 0 0 0 4px rgba(93,202,165,.25), 0 0 24px rgba(93,202,165,.8);
+  transition: left .5s cubic-bezier(.4,1.4,.5,1), bottom .5s cubic-bezier(.4,1.4,.5,1);
+  pointer-events: none; z-index: 2;
+}
+.stufe.erreicht .ring { background: var(--tuerkis); }
+.stufe:nth-child(n+10).erreicht .ring { background: #e3b341; }
+
+.schluss h2 span {
+  background: linear-gradient(90deg, var(--tuerkis), var(--schnee), var(--tuerkis));
+  background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: schimmer 4s linear infinite;
+}
+@keyframes schimmer { to { background-position: -200% 0; } }
+
+/* Handy: drei Bildschirme, die sich abwechseln */
+.screen { position: absolute; inset: 0; opacity: 0; transition: opacity .6s; }
+.screen.aktiv { opacity: 1; }
+.app-banner { animation: none; transform: translateY(-80px); opacity: 0; transition: transform .5s cubic-bezier(.2,1.4,.4,1), opacity .3s; }
+.app-banner.zeigen { transform: none; opacity: 1; }
+.tabbar {
+  position: absolute; left: 10px; right: 10px; bottom: 10px; z-index: 4;
+  display: flex; justify-content: space-around; padding: 8px 6px; border-radius: 26px;
+  background: rgba(255,255,255,.75); backdrop-filter: blur(10px);
+}
+.tabbar i { width: 22px; height: 22px; border-radius: 6px; background: #9fb3ad; transition: background .3s, transform .3s; }
+.tabbar i.an { background: #14a8a8; transform: scale(1.15); }
+.screen .auf-knopf { bottom: 62px; }
+.screen .rang-pill { bottom: 118px; }
+.hell { background: #f4f7f5; color: #10221d; padding: 52px 14px 70px; height: 100%; }
+.hell h4 { font-family: var(--text); font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+.buch-zeile {
+  display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: center;
+  padding: 9px 0; border-bottom: 1px solid #dde6e2; font-size: 13px;
+  transform: translateX(0); transition: transform .5s cubic-bezier(.2,1.3,.4,1), opacity .4s;
+}
+.screen:not(.aktiv) .buch-zeile { transform: translateX(30px); opacity: .0; }
+.buch-zeile .foto { width: 40px; height: 40px; border-radius: 9px; }
+.buch-zeile b { display: block; font-size: 14px; }
+.buch-zeile small { color: #6b817a; }
+.buch-zeile .gp { color: #14a8a8; font-weight: 700; text-align: right; }
+.buch-zeile .gp span { display: block; color: #10221d; font-weight: 600; }
+.erfolg-kopf { text-align: center; display: grid; justify-items: center; gap: 4px; }
+.erfolg-kopf .bild { width: 70px; height: 70px; border-radius: 50%; background: #9aaca6; box-shadow: 0 0 0 4px #f4f7f5, 0 0 0 7px #3fb68a; }
+.erfolg-kopf b { font-size: 22px; }
+.balken { width: 80%; height: 8px; border-radius: 9px; background: #dde6e2; overflow: hidden; margin-top: 6px; }
+.balken i { display: block; height: 100%; width: 0; background: #14a8a8; border-radius: 9px; transition: width 1.6s cubic-bezier(.3,1,.4,1) .3s; }
+.screen.aktiv .balken i { width: 62%; }
+.abz { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; }
+.abz div {
+  aspect-ratio: 1; border-radius: 14px; display: grid; place-items: center; font-size: 11px; font-weight: 700; text-align: center; padding: 4px;
+  transform: scale(1); transition: transform .5s cubic-bezier(.2,1.6,.4,1);
+}
+.screen:not(.aktiv) .abz div { transform: scale(.4); }
+.abz div:nth-child(2) { transition-delay: .08s; } .abz div:nth-child(3) { transition-delay: .16s; }
+.abz div:nth-child(4) { transition-delay: .24s; } .abz div:nth-child(5) { transition-delay: .32s; } .abz div:nth-child(6) { transition-delay: .4s; }
+.abz svg { width: 26px; height: 26px; display: block; margin: 0 auto 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .banner, .app-banner { opacity: 1; transform: none; }
+  .js .schild.warten, .profil.warten .berg { transform: none; }
+}
+</style>
+</head>
+<body class="ohne-js">
+
+<header class="kopf">
+  <a class="marke" href="#top" aria-label="GipfelJäger Startseite">
+    <svg viewBox="0 0 180 180" aria-hidden="true"><rect width="180" height="180" fill="#0B1412"/><path d="M0 118 L42 74 L66 96 L112 44 L180 112 L180 180 L0 180Z" fill="#12231F"/><path d="M0 140 L34 108 L56 122 L92 62 L130 106 L180 92 L180 180 L0 180Z" fill="#16302A"/><path d="M80 82 L92 62 L104 78 L97 76 L92 84 L86 76Z" fill="#E1F5EE"/><path d="M66 168 L124 154 L74 140 L118 126 L82 112 L110 98 L88 86 L92 66" stroke="#5DCAA5" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" fill="none"/><line x1="92" y1="64" x2="92" y2="40" stroke="#E1F5EE" stroke-width="4"/><path d="M92 40 L110 46 L92 52Z" fill="#5DCAA5"/></svg>
+    GipfelJäger
+  </a>
+  <nav aria-label="Abschnitte">
+    <a href="#so-gehts">So geht's</a>
+    <a href="#punkte">Gipfelpunkte</a>
+    <a href="#raenge">Ränge</a>
+    <a href="#mehr">Funktionen</a>
+    <a href="datenschutz.html">Datenschutz</a>
+    <a href="../index.html" class="garten-link">← AppGarten</a>
+  </nav>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="huelle hero-text">
+      <div class="eyebrow"><span class="blaze" aria-hidden="true"></span>Die Gipfel-Sammel-App</div>
+      <h1>Sammle die <span>Alpen.</span></h1>
+      <p class="lead">Wie Autokennzeichen sammeln, nur mit Gipfeln. Lauf los, steh oben, und der Berg gehört für immer in dein Gipfelbuch. Wie viele schaffst du diesen Sommer?</p>
+      <div class="knoepfe">
+        <!-- Hier später den echten App-Store-Link eintragen -->
+        <a class="store" href="#app-store" aria-label="GipfelJäger im App Store laden">
+          <svg viewBox="0 0 180 180" aria-hidden="true"><rect width="180" height="180" fill="#0B1412"/><path d="M0 118 L42 74 L66 96 L112 44 L180 112 L180 180 L0 180Z" fill="#12231F"/><path d="M0 140 L34 108 L56 122 L92 62 L130 106 L180 92 L180 180 L0 180Z" fill="#16302A"/><path d="M80 82 L92 62 L104 78 L97 76 L92 84 L86 76Z" fill="#E1F5EE"/><path d="M66 168 L124 154 L74 140 L118 126 L82 112 L110 98 L88 86 L92 66" stroke="#5DCAA5" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" fill="none"/><line x1="92" y1="64" x2="92" y2="40" stroke="#E1F5EE" stroke-width="4"/><path d="M92 40 L110 46 L92 52Z" fill="#5DCAA5"/></svg>
+          <span><small>Kostenlos laden im</small><strong>App Store</strong></span>
+        </a>
+        <a class="knopf leer" href="#so-gehts">So geht's</a>
+      </div>
+    </div>
+
+    <div class="szene" aria-label="Animation: ein Punkt läuft im Zickzack auf einen Gipfel">
+      <svg id="szene" viewBox="0 0 1200 560" preserveAspectRatio="xMidYMax slice" role="img" aria-hidden="true">
+        <defs>
+          <linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0B1412"/>
+            <stop offset="1" stop-color="#0f1e1a"/>
+          </linearGradient>
+          <linearGradient id="nah" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1a3830"/>
+            <stop offset="1" stop-color="#12231F"/>
+          </linearGradient>
+        </defs>
+        <rect width="1200" height="560" fill="url(#himmel)"/>
+        <linearGradient id="schnuppe" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#E1F5EE"/><stop offset="1" stop-color="#E1F5EE" stop-opacity="0"/></linearGradient>
+        <g id="sterne" class="ebene"></g>
+        <line id="schnuppe" class="schnuppe" x1="900" y1="40" x2="980" y2="2"/>
+        <g id="ebeneFern" class="ebene">
+        <path id="fern" d="M0 330 L120 250 L210 290 L330 170 L420 230 L520 140 L640 260 L760 200 L860 250 L980 120 L1090 210 L1200 170 L1200 560 L0 560 Z" fill="#12231F"/>
+        <path d="M486 186 L520 140 L556 196 L540 190 L528 204 L516 188 L500 198 Z" fill="#E1F5EE" opacity=".35"/>
+        <path d="M948 166 L980 120 L1012 168 L998 162 L986 176 L974 162 L960 172 Z" fill="#E1F5EE" opacity=".35"/>
+        </g>
+        <path id="nahberg" d="M0 420 L140 330 L240 370 L360 300 L470 350 L600 260 L700 310 L820 150 L900 230 L1000 200 L1100 280 L1200 250 L1200 560 L0 560Z" fill="url(#nah)"/>
+        <path d="M795 185 L820 150 L848 188 L838 184 L828 196 L818 183 L806 192 Z" fill="#E1F5EE" opacity=".9"/>
+        <!-- Weg -->
+        <path id="wegHinten" d="M690 505 L860 480 L720 450 L850 420 L745 390 L840 360 L770 330 L835 300 L790 270 L828 240 L800 215 L825 192 L812 172 L820 153" fill="none" stroke="#1D9E75" stroke-width="3" stroke-dasharray="6 8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path id="weg" d="M690 505 L860 480 L720 450 L850 420 L745 390 L840 360 L770 330 L835 300 L790 270 L828 240 L800 215 L825 192 L812 172 L820 153" fill="none" stroke="#5DCAA5" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Fahne -->
+        <g id="fahne">
+          <line x1="820" y1="153" x2="820" y2="108" stroke="#E1F5EE" stroke-width="3" stroke-linecap="round"/>
+          <path d="M820 108 L850 118 L820 128 Z" fill="#5DCAA5"/>
+        </g>
+        <circle id="wanderer" cx="820" cy="153" r="8" fill="#5DCAA5" stroke="#E1F5EE" stroke-width="3"/>
+      </svg>
+
+      <div class="hoehenmesser" aria-live="polite">
+        <span class="klein">Höhenmeter</span>
+        <span class="wert zahl"><span id="hm">1.050</span><sup>m</sup></span>
+        <button class="nochmal" id="nochmal" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+          Nochmal hochlaufen
+        </button>
+      </div>
+
+      <div class="banner zeigen" id="banner" role="status">
+        <div class="kreis">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M3 20 L9.5 9 L13 14.5 L15.5 11 L21 20 Z"/></svg>
+        </div>
+        <div><b>Neuer Gipfel erreicht</b><span>Hochvogel · 2.592 m · +14 GP</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="laufband" aria-label="Beispiel-Gipfel mit Höhe und Gipfelpunkten">
+    <div class="spur-innen" id="laufband"></div>
+  </div>
+
+  <!-- SO GEHT'S -->
+  <section id="so-gehts">
+    <div class="huelle">
+      <div class="titel">
+        <div class="eyebrow"><span class="blaze" aria-hidden="true"></span>So geht's</div>
+        <h2>Drei Wegweiser bis zum Gipfelbuch</h2>
+        <p>Kein Abhaken, kein Schummeln. Ein Gipfel zählt nur, wenn du wirklich oben stehst.</p>
+      </div>
+      <div class="wegweiser">
+        <div class="schild">
+          <div class="blaze">1</div>
+          <div><h3>Aufzeichnen</h3><p>Tipp auf Aufzeichnen, wenn du losläufst. Die App misst Strecke, Zeit und Höhenmeter. Im Taschenmodus wird der Bildschirm schwarz, damit nichts aus Versehen gedrückt wird.</p></div>
+          <div class="zeit">0 h 00</div>
+        </div>
+        <div class="schild">
+          <div class="blaze">2</div>
+          <div><h3>Oben ankommen</h3><p>Bist du bis auf 60 Meter am Gipfelpunkt, erkennt GipfelJäger den Berg und es kommt ein Banner wie bei Apple Spiele.</p></div>
+          <div class="zeit">2 h 15</div>
+        </div>
+        <div class="schild">
+          <div class="blaze">3</div>
+          <div><h3>Punkte sammeln</h3><p>Jeder Gipfel bringt Gipfelpunkte. Damit steigst du im Gipfelpfad auf, schaltest Abzeichen und Profilrahmen frei.</p></div>
+          <div class="zeit">+14 GP</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HANDY -->
+  <section>
+    <div class="huelle zweispaltig">
+      <div>
+        <div class="titel">
+          <div class="eyebrow"><span class="blaze" aria-hidden="true"></span>Die Karte</div>
+          <h2>Jeder Punkt ist ein Gipfel</h2>
+          <p>Türkis heißt: noch offen. Grün heißt: gehört dir. Tipp einen an und du siehst Höhe, Wetter oben am Gipfel und Touren dorthin.</p>
+        </div>
+        <div class="liste">
+          <div class="zeile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 19a4.5 4.5 0 0 0 0-9h-1.3A7 7 0 1 0 4 15.3"/><path d="M8 19h9.5"/></svg>
+            <div><h3>Wetter am Gipfel</h3><p>Temperatur, Wind und Böen für die Höhe des Gipfels, nicht fürs Tal.</p></div>
+          </div>
+          <div class="zeile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20l6-10 4 6 3-4 5 8z"/><path d="M14 5l3 3"/><path d="M17 5l-3 3"/></svg>
+            <div><h3>Touren auf Komoot</h3><p>Ein Tipp öffnet Wandertouren, die rund um genau diesen Gipfel starten.</p></div>
+          </div>
+          <div class="zeile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h3l3-7 4 14 3-7h7"/></svg>
+            <div><h3>3D und Satellit</h3><p>Schau dir die Berge plastisch an, bevor du losgehst.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="handy" aria-label="So sieht die App aus">
+        <div class="bildschirm">
+          <div class="insel"></div>
+
+          <!-- 1: Karte -->
+          <div class="screen aktiv" id="screenKarte">
+            <svg class="karte" viewBox="0 0 300 640" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <rect width="300" height="640" fill="#dfe9e1"/>
+              <g fill="none" stroke="#b9cfbf" stroke-width="1.2">
+                <path d="M-20 120 C60 80 120 160 200 110 S320 90 340 130"/>
+                <path d="M-20 170 C50 130 130 210 210 160 S320 140 340 180"/>
+                <path d="M-20 225 C70 190 120 260 220 215 S320 200 340 235"/>
+                <path d="M-20 285 C60 250 150 320 230 270 S320 260 340 290"/>
+                <path d="M-20 345 C80 310 140 380 240 330 S320 320 340 350"/>
+                <path d="M-20 410 C70 380 160 440 240 395 S320 390 340 415"/>
+                <path d="M-20 480 C80 450 150 510 250 465 S320 460 340 485"/>
+                <ellipse cx="150" cy="235" rx="34" ry="22"/>
+                <ellipse cx="150" cy="235" rx="16" ry="10"/>
+              </g>
+              <path id="handyRoute" d="M40 560 C60 500 90 470 110 430 S140 330 150 240" fill="none" stroke="#14a8a8" stroke-width="5" stroke-linecap="round"/>
+              <g>
+                <circle id="zielPin" cx="150" cy="235" r="9" fill="#14a8a8" stroke="#fff" stroke-width="3" style="transform-box: fill-box; transform-origin: center; transition: fill .3s, transform .4s cubic-bezier(.2,1.8,.4,1)"/>
+                <circle cx="232" cy="150" r="8" fill="#14a8a8" stroke="#fff" stroke-width="3"/>
+                <circle cx="70" cy="180" r="8" fill="#2fbf71" stroke="#fff" stroke-width="3"/>
+                <circle cx="250" cy="330" r="8" fill="#14a8a8" stroke="#fff" stroke-width="3"/>
+                <circle cx="60" cy="390" r="8" fill="#14a8a8" stroke="#fff" stroke-width="3"/>
+              </g>
+              <circle id="ichPuls" cx="40" cy="560" r="7" fill="#2f7cf6" class="punkt-puls"/>
+              <circle id="ich" cx="40" cy="560" r="7" fill="#2f7cf6" stroke="#fff" stroke-width="3"/>
+            </svg>
+            <div class="app-banner" id="handyBanner">
+              <div class="kreis"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M3 20 L9.5 9 L13 14.5 L15.5 11 L21 20 Z"/></svg></div>
+              <div><b>Neuer Gipfel erreicht</b><span>Hochvogel · +14 GP</span></div>
+            </div>
+            <div class="rang-pill"><i></i>Bergfreund · <span id="handyGP" class="zahl">60</span> GP</div>
+            <div class="auf-knopf">Aufzeichnen</div>
+          </div>
+
+          <!-- 2: Gipfelbuch -->
+          <div class="screen" id="screenBuch">
+            <div class="hell">
+              <h4>Gipfelbuch</h4>
+              <div class="buch-zeile" style="transition-delay:.05s"><div class="foto" style="background:linear-gradient(160deg,#9cc9e8,#5f8f84 60%,#2c4a40)"></div><div><b>Hochvogel</b><small>heute · 1× besucht</small></div><div class="gp">2.592 m<span>+14 GP</span></div></div>
+              <div class="buch-zeile" style="transition-delay:.15s"><div class="foto" style="background:linear-gradient(160deg,#f2c58b,#c97b4a 55%,#3b2a20)"></div><div><b>Nebelhorn</b><small>3. Okt. · 2× besucht</small></div><div class="gp">2.224 m<span>+14 GP</span></div></div>
+              <div class="buch-zeile" style="transition-delay:.25s"><div class="foto" style="background:linear-gradient(160deg,#c7e3f4,#e9f2f6 45%,#7b8f99)"></div><div><b>Säntis</b><small>14. Sep. · 1× besucht</small></div><div class="gp">2.502 m<span>+14 GP</span></div></div>
+              <div class="buch-zeile" style="transition-delay:.35s"><div class="foto" style="background:linear-gradient(160deg,#a9d39b,#4f8a52 60%,#22412a)"></div><div><b>Wendelstein</b><small>30. Aug. · 1× besucht</small></div><div class="gp">1.838 m<span>+6 GP</span></div></div>
+              <div class="buch-zeile" style="transition-delay:.45s"><div class="foto" style="background:linear-gradient(160deg,#b9c8f0,#6c7fb8 55%,#2a3150)"></div><div><b>Herzogstand</b><small>2. Aug. · 3× besucht</small></div><div class="gp">1.731 m<span>+6 GP</span></div></div>
+            </div>
+          </div>
+
+          <!-- 3: Erfolge -->
+          <div class="screen" id="screenErfolge">
+            <div class="hell">
+              <div class="erfolg-kopf">
+                <div class="bild"></div>
+                <b>Bergfreund</b>
+                <small style="color:#6b817a">74 Gipfelpunkte</small>
+                <div class="balken"><i></i></div>
+                <small style="color:#6b817a">Noch 46 GP bis Gipfelsammler</small>
+              </div>
+              <div class="abz">
+                <div style="background:#e3f5ec;color:#1f8a5b"><span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20 L9.5 9 L13 14.5 L15.5 11 L21 20 Z"/></svg>Erster Gipfel</span></div>
+                <div style="background:#e6f0fb;color:#2f6fb8"><span><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>2000er</span></div>
+                <div style="background:#fbf1e2;color:#b7791f"><span><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg>Früh&shy;aufsteher</span></div>
+                <div style="background:#eef1f0;color:#9aa8a3"><span><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="10" width="12" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" fill="none"/></svg>10 Gipfel</span></div>
+                <div style="background:#eef1f0;color:#9aa8a3"><span><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="10" width="12" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" fill="none"/></svg>3000er</span></div>
+                <div style="background:#eef1f0;color:#9aa8a3"><span><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="10" width="12" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" fill="none"/></svg>Everest</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tabbar" aria-hidden="true"><i id="tab0" class="an"></i><i id="tab1"></i><i id="tab2"></i></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PUNKTE -->
+  <section id="punkte">
+    <div class="huelle">
+      <div class="titel">
+        <div class="eyebrow"><span class="blaze" aria-hidden="true"></span>Gipfelpunkte</div>
+        <h2>Je höher, desto mehr</h2>
+        <p>Ein Hügel hinterm Haus bringt 2 Punkte. Ein Viertausender bringt 40. Die Punkte richten sich nach der Höhe des Gipfels.</p>
+      </div>
+      <div class="profil" role="table" aria-label="Gipfelpunkte nach Höhe">
+        <div class="saeule" role="row"><span class="gp zahl">2<small>GP</small></span><div class="berg" style="--h:5%"></div></div>
+        <div class="saeule" role="row"><span class="gp zahl">4<small>GP</small></span><div class="berg" style="--h:10%"></div></div>
+        <div class="saeule" role="row"><span class="gp zahl">6<small>GP</small></span><div class="berg" style="--h:15%"></div></div>
+        <div class="saeule" role="row"><span class="gp zahl">10<small>GP</small></span><div class="berg" style="--h:25%"></div></div>
+        <div class="saeule" role="row"><span class="gp zahl">14<small>GP</small></span><div class="berg" style="--h:35%"></div></div>
+        <div class="saeule" role="row"><span class="gp zahl">20<small>GP</small></span><div class="berg" style="--h:50%"></div></div>
+        <div class="saeule" role="row"><span class="gp zahl">28<small>GP</small></span><div class="berg" style="--h:70%"></div></div>
+        <div class="saeule" role="row"><span class="gp zahl">40<small>GP</small></span><div class="berg" style="--h:88%"></div></div>
+      </div>
+      <div class="achse zahl" aria-hidden="true">
+        <span>unter 1.000 m</span><span>ab 1.000</span><span>ab 1.500</span><span>ab 2.000</span><span>ab 2.500</span><span>ab 3.000</span><span>ab 3.500</span><span>ab 4.000</span>
+      </div>
+      <p class="hinweis"><b>Nochmal oben?</b> Ein Gipfel, den du schon hast, bringt 40 % der Punkte. Am selben Tag zählt er nur einmal.</p>
+    </div>
+  </section>
+
+  <!-- RÄNGE -->
+  <section id="raenge">
+    <div class="huelle">
+      <div class="titel">
+        <div class="eyebrow"><span class="blaze" aria-hidden="true"></span>Der Gipfelpfad</div>
+        <h2>Vom Amateur zur Legende</h2>
+        <p>Elf Ränge, jeder mit eigenem Profilrahmen. Für die Legende brauchst du 2.200 Gipfelpunkte, das sind eine Menge Höhenmeter.</p>
+      </div>
+      <div class="pfad" tabindex="0" aria-label="Alle Ränge, nach rechts wischen">
+        <div class="stufen" id="stufen"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FUNKTIONEN -->
+  <section id="mehr">
+    <div class="huelle">
+      <div class="titel">
+        <div class="eyebrow"><span class="blaze" aria-hidden="true"></span>Alles drin</div>
+        <h2>Fürs ganze Bergjahr</h2>
+      </div>
+      <div class="raster">
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <h3>Taschenmodus</h3><p>Schwarzer, gesperrter Bildschirm, damit das Handy in der Tasche nichts drückt. Die Aufzeichnung läuft weiter.</p>
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2"/><path d="M9 8h6"/></svg>
+          <h3>Gipfelbuch</h3><p>Alle deine Gipfel mit Datum, eigenem Eintrag und Fotos vom Gipfelkreuz.</p>
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 22l5-3 5 3-1.5-9.5"/></svg>
+          <h3>Abzeichen</h3><p>Erster Zweitausender, 50 Gipfel, Everest-Höhenmeter und mehr. Jedes mit eigenem Banner.</p>
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+          <h3>Als Story teilen</h3><p>Gipfel oder Abzeichen als fertiges Story-Bild, direkt in deine Instagram-Story.</p>
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.5 19a4.5 4.5 0 0 0 0-9h-1.3A7 7 0 1 0 4 15.3"/><path d="m9 16 2 2 4-4"/></svg>
+          <h3>iCloud</h3><p>Deine Gipfel sind auf iPhone und iPad gleich, ganz ohne Konto.</p>
+        </div>
+        <div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
+          <h3>Statistik</h3><p>Höhenmeter und Gipfel pro Monat, dein höchster Berg und eine Karte mit allen Fahnen.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="schluss">
+    <div class="huelle">
+      <h2>Der erste Gipfel <span>wartet.</span></h2>
+      <div class="knoepfe">
+<!-- Hier später den echten App-Store-Link eintragen -->
+        <a class="store" href="#app-store" aria-label="GipfelJäger im App Store laden">
+          <svg viewBox="0 0 180 180" aria-hidden="true"><rect width="180" height="180" fill="#0B1412"/><path d="M0 118 L42 74 L66 96 L112 44 L180 112 L180 180 L0 180Z" fill="#12231F"/><path d="M0 140 L34 108 L56 122 L92 62 L130 106 L180 92 L180 180 L0 180Z" fill="#16302A"/><path d="M80 82 L92 62 L104 78 L97 76 L92 84 L86 76Z" fill="#E1F5EE"/><path d="M66 168 L124 154 L74 140 L118 126 L82 112 L110 98 L88 86 L92 66" stroke="#5DCAA5" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" fill="none"/><line x1="92" y1="64" x2="92" y2="40" stroke="#E1F5EE" stroke-width="4"/><path d="M92 40 L110 46 L92 52Z" fill="#5DCAA5"/></svg>
+          <span><small>Kostenlos laden im</small><strong>App Store</strong></span>
+        </a>
+      </div>
+    </div>
+    <svg class="grat" viewBox="0 0 1200 160" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 120 L100 70 L180 100 L300 30 L380 80 L500 50 L620 110 L720 60 L840 90 L960 20 L1060 80 L1200 50 L1200 160 L0 160Z" fill="#12231F"/>
+      <path d="M0 150 L140 110 L260 135 L400 90 L520 125 L660 85 L780 120 L900 95 L1040 130 L1200 100 L1200 160 L0 160Z" fill="#16302A"/>
+    </svg>
+  </section>
+</main>
+
+<footer>
+  <div class="huelle">
+    <span>GipfelJäger · eine App aus dem <a href="../index.html" style="color:var(--tuerkis)">AppGarten</a></span>
+    <nav aria-label="Rechtliches">
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="../impressum.html">Impressum</a>
+      <a href="mailto:appgarten@outlook.com">Support</a>
+    </nav>
+    <span>Gipfeldaten © OpenStreetMap-Mitwirkende</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  document.body.classList.remove("ohne-js");
+  const ruhig = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Sterne
+  const sterne = document.getElementById("sterne");
+  let seed = 7;
+  const zufall = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+  for (let i = 0; i < 70; i++) {
+    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("cx", (zufall() * 1200).toFixed(1));
+    c.setAttribute("cy", (zufall() * 260).toFixed(1));
+    c.setAttribute("r", (0.6 + zufall() * 1.6).toFixed(2));
+    c.setAttribute("fill", zufall() > 0.85 ? "#5DCAA5" : "#2E4A44");
+    c.setAttribute("class", "stern");
+    c.style.setProperty("--d", (2 + zufall() * 4).toFixed(1) + "s");
+    c.style.animationDelay = (-zufall() * 5).toFixed(1) + "s";
+    sterne.appendChild(c);
+  }
+
+  // Ränge als Stufen
+  const raenge = [
+    ["Amateur", 0], ["Wanderer", 20], ["Bergfreund", 60], ["Gipfelsammler", 120], ["Profi", 220],
+    ["Bergsteiger", 360], ["Alpinist", 550], ["Gipfelstürmer", 800], ["Bergführer", 1150],
+    ["Gipfelkönig", 1600], ["Legende", 2200]
+  ];
+  const stufen = document.getElementById("stufen");
+  raenge.forEach(([name, ab], i) => {
+    const d = document.createElement("div");
+    d.className = "stufe";
+    d.innerHTML = `<span class="ring" aria-hidden="true"></span><span class="name">${name}</span>` +
+      `<span class="ab zahl">ab ${ab.toLocaleString("de-DE")} GP</span>` +
+      `<div class="block" style="--h:${12 + i * 7}%"></div>`;
+    stufen.appendChild(d);
+  });
+
+  // Aufstieg im Hero
+  const weg = document.getElementById("weg");
+  const wanderer = document.getElementById("wanderer");
+  const fahne = document.getElementById("fahne");
+  const banner = document.getElementById("banner");
+  const hm = document.getElementById("hm");
+  const laenge = weg.getTotalLength();
+  const startHoehe = 1050, gipfelHoehe = 2592;
+  const fmt = n => Math.round(n).toLocaleString("de-DE");
+
+  function setze(anteil) {
+    weg.style.strokeDasharray = laenge;
+    weg.style.strokeDashoffset = laenge * (1 - anteil);
+    const p = weg.getPointAtLength(laenge * anteil);
+    wanderer.setAttribute("cx", p.x);
+    wanderer.setAttribute("cy", p.y);
+    hm.textContent = fmt(startHoehe + (gipfelHoehe - startHoehe) * anteil);
+  }
+
+  let laeuft = null;
+  function aufstieg() {
+    if (ruhig) { setze(1); fahne.style.opacity = 1; banner.classList.add("zeigen"); return; }
+    cancelAnimationFrame(laeuft);
+    banner.classList.remove("zeigen");
+    fahne.style.transition = "none";
+    fahne.style.opacity = 0;
+    fahne.style.transform = "scale(.2)";
+    fahne.style.transformOrigin = "820px 153px";
+    const dauer = 4600;
+    let start = null;
+    const schritt = t => {
+      if (start === null) start = t;
+      const x = Math.min(1, (t - start) / dauer);
+      // langsamer werdend, wie ein echter Aufstieg
+      const anteil = 1 - Math.pow(1 - x, 2.2);
+      setze(anteil);
+      if (x < 1) {
+        laeuft = requestAnimationFrame(schritt);
+      } else {
+        fahne.style.transition = "transform .6s cubic-bezier(.2,1.6,.4,1), opacity .3s";
+        fahne.style.opacity = 1;
+        fahne.style.transform = "scale(1)";
+        setTimeout(() => banner.classList.add("zeigen"), 350);
+      }
+    };
+    laeuft = requestAnimationFrame(schritt);
+  }
+
+
+  document.body.classList.add("js");
+
+  // Laufband mit echten Alpengipfeln
+  const gipfelListe = [["Zugspitze",2962],["Großglockner",3798],["Watzmann",2713],["Matterhorn",4478],["Hochvogel",2592],
+    ["Säntis",2502],["Piz Bernina",4049],["Nebelhorn",2224],["Ortler",3905],["Dachstein",2995],["Wendelstein",1838],["Herzogstand",1731]];
+  const gp = h => h < 1000 ? 2 : h < 1500 ? 4 : h < 2000 ? 6 : h < 2500 ? 10 : h < 3000 ? 14 : h < 3500 ? 20 : h < 4000 ? 28 : 40;
+  const band = document.getElementById("laufband");
+  const eintraege = gipfelListe.map(([n, h]) => `<span>${n} <em>${h.toLocaleString("de-DE")} m</em> <b>+${gp(h)} GP</b></span>`).join("");
+  band.innerHTML = eintraege + eintraege;
+
+  // Sternschnuppe ab und zu
+  const schnuppe = document.getElementById("schnuppe");
+  function schnuppeFliegen() {
+    if (ruhig) return;
+    const x = 500 + Math.random() * 650, y = 10 + Math.random() * 90;
+    schnuppe.setAttribute("x1", x); schnuppe.setAttribute("y1", y);
+    schnuppe.setAttribute("x2", x + 80); schnuppe.setAttribute("y2", y - 38);
+    schnuppe.classList.remove("flug"); void schnuppe.getBoundingClientRect(); schnuppe.classList.add("flug");
+    setTimeout(schnuppeFliegen, 4000 + Math.random() * 5000);
+  }
+  setTimeout(schnuppeFliegen, 2500);
+
+  // Leichte Tiefenwirkung bei Maus und Scrollen
+  const sterneEbene = document.getElementById("sterne");
+  const fernEbene = document.getElementById("ebeneFern");
+  let mx = 0;
+  if (!ruhig) {
+    window.addEventListener("pointermove", e => { mx = (e.clientX / window.innerWidth - .5); tiefe(); }, { passive: true });
+    window.addEventListener("scroll", tiefe, { passive: true });
+  }
+  function tiefe() {
+    const y = Math.min(window.scrollY, 800);
+    sterneEbene.style.transform = `translate(${mx * -14}px, ${y * .18}px)`;
+    fernEbene.style.transform = `translate(${mx * -24}px, ${y * .08}px)`;
+  }
+
+  // Hineinscrollen: Wegweiser, Punkte-Berge, Kletterer
+  const unterSicht = el => el.getBoundingClientRect().top > window.innerHeight;
+  const beob = new IntersectionObserver(eintr => {
+    eintr.forEach(e => {
+      if (!e.isIntersecting) return;
+      const el = e.target;
+      el.classList.remove("warten"); el.classList.add("da");
+      if (el.id === "stufen") klettern();
+      beob.unobserve(el);
+    });
+  }, { threshold: .35 });
+  if (!ruhig) {
+    document.querySelectorAll(".schild, .profil").forEach(el => {
+      if (unterSicht(el)) el.classList.add("warten");
+      beob.observe(el);
+    });
+  }
+
+  // Kletterer auf dem Gipfelpfad
+  const kletterer = document.createElement("div");
+  kletterer.className = "kletterer";
+  stufen.appendChild(kletterer);
+  const stufenEl = [...stufen.querySelectorAll(".stufe")];
+  function stelle(i) {
+    const blk = stufenEl[i].querySelector(".block");
+    kletterer.style.left = (stufenEl[i].offsetLeft + stufenEl[i].offsetWidth / 2 - 9) + "px";
+    kletterer.style.bottom = (blk.offsetHeight - 9) + "px";
+    stufenEl.forEach((s, k) => s.classList.toggle("erreicht", k <= i));
+  }
+  stelle(0);
+  let kletterTimer = null;
+  function klettern() {
+    if (ruhig) { stelle(stufenEl.length - 1); return; }
+    clearInterval(kletterTimer);
+    let i = 0; stelle(0);
+    kletterTimer = setInterval(() => {
+      i++;
+      if (i >= stufenEl.length) { clearInterval(kletterTimer); setTimeout(klettern, 3500); return; }
+      stelle(i);
+    }, 420);
+  }
+  if (ruhig) stelle(stufenEl.length - 1); else beob.observe(stufen);
+  window.addEventListener("resize", () => stelle(stufenEl.filter(s => s.classList.contains("erreicht")).length - 1));
+
+  // Handy: Karte → Gipfelbuch → Erfolge
+  const screens = ["screenKarte", "screenBuch", "screenErfolge"].map(id => document.getElementById(id));
+  const tabs = [0, 1, 2].map(i => document.getElementById("tab" + i));
+  const route = document.getElementById("handyRoute");
+  const ich = document.getElementById("ich"), ichPuls = document.getElementById("ichPuls");
+  const zielPin = document.getElementById("zielPin");
+  const hBanner = document.getElementById("handyBanner");
+  const hGP = document.getElementById("handyGP");
+  const rLaenge = route.getTotalLength();
+
+  function zeigeScreen(n) {
+    screens.forEach((s, i) => s.classList.toggle("aktiv", i === n));
+    tabs.forEach((t, i) => t.classList.toggle("an", i === n));
+  }
+  function handyRoute(anteil) {
+    route.style.strokeDasharray = rLaenge;
+    route.style.strokeDashoffset = rLaenge * (1 - anteil);
+    const p = route.getPointAtLength(rLaenge * anteil);
+    ich.setAttribute("cx", p.x); ich.setAttribute("cy", p.y);
+    ichPuls.setAttribute("cx", p.x); ichPuls.setAttribute("cy", p.y);
+  }
+  function zaehle(el, von, bis, ms) {
+    const t0 = performance.now();
+    const f = t => { const x = Math.min(1, (t - t0) / ms); el.textContent = Math.round(von + (bis - von) * x); if (x < 1) requestAnimationFrame(f); };
+    requestAnimationFrame(f);
+  }
+  function handyRunde() {
+    zeigeScreen(0);
+    hBanner.classList.remove("zeigen");
+    zielPin.setAttribute("fill", "#14a8a8"); zielPin.style.transform = "scale(1)";
+    hGP.textContent = "60";
+    const t0 = performance.now(), dauer = 3800;
+    const f = t => {
+      const x = Math.min(1, (t - t0) / dauer);
+      handyRoute(1 - Math.pow(1 - x, 1.6));
+      if (x < 1) { requestAnimationFrame(f); return; }
+      zielPin.setAttribute("fill", "#2fbf71"); zielPin.style.transform = "scale(1.6)";
+      setTimeout(() => { zielPin.style.transform = "scale(1)"; }, 400);
+      hBanner.classList.add("zeigen");
+      zaehle(hGP, 60, 74, 900);
+      setTimeout(() => hBanner.classList.remove("zeigen"), 2800);
+      setTimeout(() => zeigeScreen(1), 3400);
+      setTimeout(() => zeigeScreen(2), 7400);
+      setTimeout(handyRunde, 11800);
+    };
+    requestAnimationFrame(f);
+  }
+  if (ruhig) { handyRoute(1); zielPin.setAttribute("fill", "#2fbf71"); hBanner.classList.add("zeigen"); hGP.textContent = "74"; }
+  else handyRunde();
+
+  document.getElementById("nochmal").addEventListener("click", aufstieg);
+  // kurz die fertige Szene zeigen, dann losklettern
+  setTimeout(aufstieg, 700);
+})();
+</script>
+</body>
+</html>

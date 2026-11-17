@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Datenschutz – StopIt</title>
+<link rel="stylesheet" href="../fonts/fonts.css">
+<style>
+:root {
+  --grund: #0B0A10; --flaeche: #14121C; --linie: #26223A; --violett: #A78BFA;
+  --hell: #F4F2FF; --leise: #A9A3C2; --still: #6E6890;
+  --display: "Unbounded", system-ui, sans-serif; --text: "Figtree", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--grund); color: var(--hell); font: 18px/1.65 var(--text); -webkit-font-smoothing: antialiased; }
+a { color: var(--violett); }
+:focus-visible { outline: 3px solid var(--violett); outline-offset: 3px; border-radius: 4px; }
+.huelle { width: min(760px, 100% - 32px); margin-inline: auto; }
+header { padding: 24px 0; border-bottom: 1px solid var(--linie); }
+header .huelle { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.logo { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 700; font-size: 19px; text-decoration: none; color: var(--hell); }
+.logo svg { width: 32px; height: 32px; border-radius: 8px; }
+main { padding: 56px 0 90px; }
+.klein { font-weight: 700; letter-spacing: .16em; text-transform: uppercase; font-size: 13px; color: var(--violett); }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(36px, 7vw, 64px); line-height: 1.05; margin: 12px 0 12px; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 700; font-size: 22px; margin: 42px 0 10px; }
+p, li { color: var(--leise); max-width: 65ch; }
+p + p { margin-top: 12px; }
+ul { padding-left: 22px; display: grid; gap: 6px; }
+.stand { color: var(--still); font-size: 15px; }
+.kurz { margin-top: 30px; background: var(--flaeche); border: 1px solid var(--linie); border-radius: 18px; padding: 22px 24px; }
+.kurz h2 { margin: 0 0 10px; }
+.kurz ul { list-style: none; padding: 0; }
+.kurz li { color: var(--hell); display: flex; gap: 10px; }
+.kurz li::before { content: "✓"; color: var(--violett); font-weight: 700; }
+footer { border-top: 1px solid var(--linie); padding: 24px 0 40px; color: var(--still); font-size: 15px; }
+footer .huelle { display: flex; flex-wrap: wrap; gap: 12px 24px; }
+footer a { color: inherit; text-decoration: none; } footer a:hover { color: var(--hell); }
+</style>
+</head>
+<body>
+<header>
+  <div class="huelle">
+    <a class="logo" href="index.html">
+      <svg viewBox="0 0 180 180" aria-hidden="true"><rect width="180" height="180" fill="#15131F"/><circle cx="90" cy="90" r="52" fill="none" stroke="#2A2638" stroke-width="14"/><circle cx="90" cy="90" r="52" fill="none" stroke="#A78BFA" stroke-width="14" stroke-linecap="round" stroke-dasharray="250 400" transform="rotate(-90 90 90)"/><path d="M68 92 L84 108 L114 76" fill="none" stroke="#F4F2FF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      StopIt
+    </a>
+    <a href="index.html" style="font-weight:600;text-decoration:none;font-size:16px">← Zu StopIt</a>
+  </div>
+</header>
+<main class="huelle">
+  <div class="klein">Rechtliches</div>
+  <h1>Datenschutz&shy;erklärung</h1>
+  <p class="stand">Für die App StopIt · Stand: November 2026</p>
+
+  <div class="kurz">
+    <h2>Kurz gesagt</h2>
+    <ul>
+      <li>Kein Konto, keine Werbung, kein Tracking, keine Analyse-Tools.</li>
+      <li>Deine Gewohnheiten und Einträge bleiben auf deinem Gerät.</li>
+      <li>Ich als Entwickler bekomme keine deiner Daten.</li>
+    </ul>
+  </div>
+
+  <h2>Kontakt</h2>
+  <p>Verantwortlich ist der Anbieter laut <a href="../impressum.html">Impressum</a>.<br>E-Mail: <a href="mailto:appgarten@outlook.com">appgarten@outlook.com</a></p>
+
+  <h2>Welche Daten die App speichert</h2>
+  <p>StopIt speichert deine Gewohnheiten, Einstellungen (zum Beispiel Farben, Wochenziele, Sprache und Erscheinungsbild) und deine täglichen Einträge (geschafft, nicht geschafft oder Mengen). Diese Daten werden ausschließlich auf deinem Gerät gespeichert und nicht an mich oder an andere übertragen.</p>
+
+  <h2>Face ID und Touch ID</h2>
+  <p>Wenn du die App mit Face ID oder Touch ID schützt, übernimmt das iOS-System die Prüfung. StopIt bekommt nur die Antwort „erkannt“ oder „nicht erkannt“. Dein Gesicht oder Fingerabdruck wird von der App weder gespeichert noch verarbeitet.</p>
+
+  <h2>Datenübertragung</h2>
+  <p>StopIt baut für seine Funktionen keine Verbindung zu eigenen Servern auf und gibt keine Daten an Dritte weiter. Es werden keine Werbe-, Analyse- oder Tracking-Dienste verwendet.</p>
+
+  <h2>Daten löschen</h2>
+  <p>Du kannst einzelne Gewohnheiten in der App löschen. Wenn du die App von deinem Gerät löschst, werden alle ihre Daten mit entfernt.</p>
+
+  <h2>Deine Rechte</h2>
+  <p>Du hast das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung der Verarbeitung deiner Daten sowie ein Beschwerderecht bei einer Datenschutz-Aufsichtsbehörde. Da keine Daten bei mir gespeichert werden, hast du sie jederzeit selbst in der Hand. Bei Fragen schreib mir an <a href="mailto:appgarten@outlook.com">appgarten@outlook.com</a>.</p>
+
+  <h2>Diese Webseite</h2>
+  <p>Diese Webseite wird bei GitHub Pages (GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA) gespeichert. Beim Aufruf verarbeitet GitHub technisch notwendige Daten wie deine IP-Adresse, Datum und Uhrzeit, um die Seite auszuliefern und vor Angriffen zu schützen (berechtigtes Interesse, Art. 6 Abs. 1 lit. f DSGVO). Dabei können Daten in die USA übertragen werden; GitHub ist nach dem EU-US Data Privacy Framework zertifiziert. Diese Webseite setzt keine Cookies, nutzt keine Analyse-Tools und lädt alle Schriftarten vom eigenen Server.</p>
+</main>
+<footer>
+  <div class="huelle">
+    <a href="index.html">StopIt</a>
+    <a href="../index.html">AppGarten</a>
+    <a href="../impressum.html">Impressum</a>
+  </div>
+</footer>
+</body>
+</html>

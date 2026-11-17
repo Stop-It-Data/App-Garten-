@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Impressum – AppGarten</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root {
+  --nacht: #090D0B; --beet: #121A16; --rand: #233229; --blatt: #4FBF84; --gluehen: #F2C46B;
+  --hell: #EEF4EF; --leise: #9DB1A5; --still: #61756A;
+  --display: "Fraunces", Georgia, serif; --text: "Figtree", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--nacht); color: var(--hell); font: 18px/1.65 var(--text); -webkit-font-smoothing: antialiased; }
+a { color: var(--blatt); }
+:focus-visible { outline: 3px solid var(--gluehen); outline-offset: 3px; border-radius: 4px; }
+.huelle { width: min(720px, 100% - 32px); margin-inline: auto; }
+header { padding: 24px 0; border-bottom: 1px solid var(--rand); }
+header .huelle { display: flex; justify-content: space-between; align-items: center; }
+.logo { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 22px; text-decoration: none; color: var(--hell); }
+.logo svg { width: 28px; height: 28px; }
+main { padding: 60px 0 100px; }
+.klein { font-weight: 700; letter-spacing: .18em; text-transform: uppercase; font-size: 13px; color: var(--gluehen); }
+h1 { font-family: var(--display); font-weight: 800; font-size: clamp(52px, 9vw, 88px); line-height: 1; margin: 12px 0 34px; }
+h1 em { color: var(--blatt); }
+.karte { background: var(--beet); border: 1px solid var(--rand); border-radius: 22px; padding: 28px; display: grid; gap: 18px; }
+.karte h2 { font-size: 14px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--still); margin-bottom: 4px; }
+.karte p { font-size: 20px; }
+.hinweis { margin-top: 30px; color: var(--leise); font-size: 16px; max-width: 60ch; }
+.hinweis + .hinweis { margin-top: 12px; }
+footer { border-top: 1px solid var(--rand); padding: 24px 0 40px; color: var(--still); font-size: 15px; }
+footer .huelle { display: flex; flex-wrap: wrap; gap: 12px 24px; }
+footer a { color: inherit; text-decoration: none; } footer a:hover { color: var(--gluehen); }
+</style>
+</head>
+<body>
+<header>
+  <div class="huelle">
+    <a class="logo" href="index.html">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 36 C20 26 20 20 20 14" stroke="#4FBF84" stroke-width="3" stroke-linecap="round" fill="none"/><path d="M20 22 C12 22 8 16 8 10 C15 10 20 14 20 22Z" fill="#4FBF84"/><path d="M20 18 C27 18 32 13 32 6 C25 6 20 10 20 18Z" fill="#2F7A55"/><circle cx="31" cy="27" r="3" fill="#F2C46B"/></svg>
+      AppGarten
+    </a>
+    <a href="index.html" style="font-weight:600;text-decoration:none;font-size:16px">← Zur Startseite</a>
+  </div>
+</header>
+<main class="huelle">
+  <div class="klein">Rechtliches</div>
+  <h1><em>Impressum</em></h1>
+  <div class="karte">
+    <div><h2>Angaben gemäß § 5 DDG</h2><p>Peter Speidel</p></div>
+    <div><h2>Kontakt</h2><p>E-Mail: <a href="mailto:appgarten@outlook.com">appgarten@outlook.com</a></p></div>
+    <div><h2>Verantwortlich für den Inhalt</h2><p>Peter Speidel</p></div>
+  </div>
+  <p class="hinweis">AppGarten ist ein privates Projekt. Alle Apps sind kostenlos und enthalten weder Werbung noch Tracking.</p>
+  <p class="hinweis">Für Inhalte externer Seiten, auf die hier verlinkt wird, sind die jeweiligen Betreiber verantwortlich.</p>
+</main>
+<footer>
+  <div class="huelle">
+    <a href="index.html">AppGarten</a>
+    <a href="gipfeljaeger/datenschutz.html">Datenschutz GipfelJäger</a>
+    <a href="stopit/datenschutz.html">Datenschutz StopIt</a>
+  </div>
+</footer>
+</body>
+</html>
