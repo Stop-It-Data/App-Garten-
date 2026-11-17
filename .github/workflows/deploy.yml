@@ -4,12 +4,12 @@ on:
     branches: [main]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -18,19 +18,34 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Webseite auspacken
+
+      - name: Zip auspacken (falls vorhanden)
+        run: |
+          if [ -f webseite.zip ]; then
+            mkdir /tmp/neu
+            unzip -q -o webseite.zip -d /tmp/neu
+            if [ ! -f /tmp/neu/index.html ] && [ "$(ls /tmp/neu | wc -l)" = "1" ]; then
+              d="/tmp/neu/$(ls /tmp/neu)"; mv "$d"/* "$d"/.[!.]* /tmp/neu/ 2>/dev/null || true; rmdir "$d"
+            fi
+            rm -rf /tmp/neu/__MACOSX
+            cp -R /tmp/neu/. .
+            git rm -q webseite.zip
+            git config user.name "github-actions"
+            git config user.email "github-actions@users.noreply.github.com"
+            git add -A
+            git commit -m "Webseite aus Zip ausgepackt"
+            git push
+          fi
+
+      - name: Seite zusammenstellen
         run: |
           mkdir _site
-          unzip -q webseite.zip -d _site
-          if [ ! -f _site/index.html ] && [ "$(ls _site | wc -l)" = "1" ]; then
-            d="_site/$(ls _site)"; mv "$d"/* "$d"/.[!.]* _site/ 2>/dev/null || true; rmdir "$d"
-          fi
-          rm -rf _site/__MACOSX
+          rsync -a --exclude '.git' --exclude '.github' --exclude '_site' --exclude 'README.md' ./ _site/
           touch _site/.nojekyll
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
       - id: deployment
         uses: actions/deploy-pages@v4
-
