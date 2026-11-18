@@ -1,0 +1,20 @@
+{
+ "name": "AppGarten",
+ "short_name": "AppGarten",
+ "start_url": "/",
+ "display": "standalone",
+ "background_color": "#0B1412",
+ "theme_color": "#0B1412",
+ "icons": [
+  {
+   "src": "icons/appgarten-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/appgarten-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}
